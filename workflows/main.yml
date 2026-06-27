@@ -1,0 +1,19 @@
+name: APEX Portal CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify PWA files exist
+        run: |
+          test -f sw.js || (echo "sw.js missing!" && exit 1)
+          test -f manifest.json || (echo "manifest.json missing!" && exit 1)
+          test -f index.html || (echo "index.html missing!" && exit 1)
+          echo "✅ All PWA files present"
