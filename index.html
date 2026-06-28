@@ -1252,7 +1252,7 @@ async function studentLogin(){
   const _resetBtn=()=>{if(btn){btn.innerHTML='Access Portal <i class="fas fa-arrow-right"></i>';btn.disabled=false;}};
   try{
     const safeAdm=adm.replace(/[\/\\\s]/g,'').toLowerCase();
-    const syntheticEmail=safeAdm+'@student.vis.school';
+    const syntheticEmail=safeAdm+'@student.apex.school';
     const{data:authData,error:authErr}=await DB().auth.signInWithPassword({email:syntheticEmail,password:pass});
     if(authErr||!authData?.user){_rlFail('student');authMsg('❌ Incorrect admission number or password.');_resetBtn();return;}
     let st=null;
@@ -3231,7 +3231,7 @@ async function runStudentMigration(){
   function deriveEmail(s){
     if(s.email&&s.email.includes('@')) return s.email.toLowerCase().trim();
     const safeAdm=(s.admission_number||String(s.id)).replace(/[\/\\\s]/g,'').toLowerCase();
-    return safeAdm+'@student.vis.school';
+    return safeAdm+'@student.apex.school';
   }
   function derivePassword(s){
     const sur=(s.surname||s.full_name||'').toUpperCase().trim();
@@ -10982,7 +10982,7 @@ async function saveStudentAccountCreds(){
       if(dbErr){errors++;continue;}
       // 2. Create Supabase Auth account via Edge Function
       const safeAdm=r.adm.replace(/[\/\\\s]/g,'').toLowerCase();
-      const syntheticEmail=safeAdm+'@student.vis.school';
+      const syntheticEmail=safeAdm+'@student.apex.school';
       let authId=null;
       const{data:au,error:authErr}=await _callAuthAdmin('create',{email:syntheticEmail,password:r.pass});
       if(authErr){
@@ -11194,7 +11194,7 @@ async function applyExistingCred(type,id){
     try{
       const authUpd={};
       if(type==='staff') authUpd.email=cred1.toLowerCase();
-      if(type==='student') authUpd.email=cred1.toUpperCase().replace(/[^A-Z0-9]/g,'').toLowerCase()+'@student.vis.school';
+      if(type==='student') authUpd.email=cred1.toUpperCase().replace(/[^A-Z0-9]/g,'').toLowerCase()+'@student.apex.school';
       if(cred2) authUpd.password=cred2;
       if(Object.keys(authUpd).length){
         await _callAuthAdmin('update',{userId:rec.auth_id,updates:authUpd});
@@ -11204,7 +11204,7 @@ async function applyExistingCred(type,id){
     // No Auth account yet — create one
     try{
       let authEmail=cred1.toLowerCase();
-      if(type==='student') authEmail=cred1.toUpperCase().replace(/[^A-Z0-9]/g,'').toLowerCase()+'@student.vis.school';
+      if(type==='student') authEmail=cred1.toUpperCase().replace(/[^A-Z0-9]/g,'').toLowerCase()+'@student.apex.school';
       const{data:nu}=await _callAuthAdmin('create',{email:authEmail,password:cred2});
       if(nu?.user) await DB().from(tbl).update({auth_id:nu.user.id,has_account:true}).eq('id',id);
     }catch(e){toast('DB updated but Auth creation failed: '+e.message,'error');}
@@ -11230,7 +11230,7 @@ async function regenSingleCred(type,id){
     try{
       const authUpd={password:newPass};
       if(type==='student'&&upd.admission_number){
-        authUpd.email=upd.admission_number.replace(/[^A-Z0-9]/gi,'').toLowerCase()+'@student.vis.school';
+        authUpd.email=upd.admission_number.replace(/[^A-Z0-9]/gi,'').toLowerCase()+'@student.apex.school';
       }
       await _callAuthAdmin('update',{userId:rec.auth_id,updates:authUpd});
       toast('✅ Credentials regenerated and Auth synced! New password: '+newPass);
@@ -11239,7 +11239,7 @@ async function regenSingleCred(type,id){
     try{
       let authEmail='';
       if(type==='staff'){const{data:p}=await DB().from('profiles').select('email').eq('id',id).single();authEmail=p?.email||'';}
-      else if(upd.admission_number){authEmail=upd.admission_number.replace(/[^A-Z0-9]/gi,'').toLowerCase()+'@student.vis.school';}
+      else if(upd.admission_number){authEmail=upd.admission_number.replace(/[^A-Z0-9]/gi,'').toLowerCase()+'@student.apex.school';}
       if(!authEmail){toast('No email for Auth account creation.','error');return;}
       const{data:nu}=await _callAuthAdmin('create',{email:authEmail,password:newPass});
       if(nu?.user){await DB().from(tbl).update({auth_id:nu.user.id,has_account:true}).eq('id',id);}
@@ -19188,7 +19188,7 @@ async function approveSignUpRequest(reqId,role){
       // Create Supabase Auth account via Edge Function
       const safeAdm=adm.replace(/[\/\\\s]/g,'').toLowerCase();
       try{
-        const{data:au}=await _callAuthAdmin('create',{email:safeAdm+'@student.vis.school',password:pass});
+        const{data:au}=await _callAuthAdmin('create',{email:safeAdm+'@student.apex.school',password:pass});
         if(au?.user&&insertedId) await DB().from('students').update({auth_id:au.user.id,has_account:true}).eq('id',insertedId);
       }catch(e){console.warn('Auth creation failed:',e.message);}
     } else if(role==='parent'){
