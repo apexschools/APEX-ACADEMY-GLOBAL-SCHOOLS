@@ -244,8 +244,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:#1A2E1A;}
 .mi{display:flex;align-items:center;gap:12px;padding:12px 15px;border-radius:11px;cursor:pointer;font-size:17px;font-weight:500;color:var(--br);transition:all .18s;}
 .mi:hover,.mi.active{background:var(--br);color:#fff;}
 .mi i{width:18px;text-align:center;}
-.card{background:#fff;border-radius:18px;box-shadow:0 2px 12px rgba(93,64,55,.07);transition:transform .2s,box-shadow .2s;}
-.card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(93,64,55,.12);}
+.card{background:#fff;border-radius:18px;box-shadow:0 2px 12px rgba(26,107,42,.07);transition:transform .2s,box-shadow .2s;}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(26,107,42,.12);}
 .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:11px;font-size:14.5px;font-weight:600;cursor:pointer;border:none;transition:all .18s;font-family:'DM Sans',sans-serif;}
 .btn-primary{background:var(--br);color:#fff;}.btn-primary:hover{background:var(--brd);}
 .btn-sm{padding:7px 14px;font-size:13px;border-radius:9px;}
@@ -307,7 +307,7 @@ body.dark .tbl tr:hover td{background:#0D4A15;}
 .profile-pic-wrap{position:relative;width:90px;height:90px;border-radius:18px;overflow:hidden;cursor:pointer;border:3px dashed var(--brl);}
 .profile-pic-wrap:hover{border-color:var(--br);}
 .profile-pic-wrap img{width:100%;height:100%;object-fit:cover;}
-.profile-pic-wrap .overlay{position:absolute;inset:0;background:rgba(93,64,55,.55);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;opacity:0;transition:.2s;}
+.profile-pic-wrap .overlay{position:absolute;inset:0;background:rgba(26,107,42,.55);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;opacity:0;transition:.2s;}
 .profile-pic-wrap:hover .overlay{opacity:1;}
 /* Anti-screenshot exam mode */
 body.exam-active{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
@@ -316,7 +316,7 @@ body.exam-active #dynamic-content{-webkit-user-select:none;user-select:none;poin
 body.exam-active .exam-opt,body.exam-active button,body.exam-active input,body.exam-active label{pointer-events:auto;}
 @media print{body.exam-active{display:none!important;}}
 .exam-watermark{position:fixed;inset:0;pointer-events:none;z-index:9998;background:
-  repeating-linear-gradient(45deg,transparent,transparent 80px,rgba(93,64,55,.025) 80px,rgba(93,64,55,.025) 160px);}
+  repeating-linear-gradient(45deg,transparent,transparent 80px,rgba(26,107,42,.025) 80px,rgba(26,107,42,.025) 160px);}
 /* Face verification modal */
 #face-verify-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px;}
 #face-verify-box{background:#111;border-radius:20px;padding:24px;width:420px;max-width:96vw;color:#fff;text-align:center;}
@@ -345,8 +345,8 @@ body.exam-active .exam-opt,body.exam-active button,body.exam-active input,body.e
 .pp-btn-portal:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.22);}
 .pp-btn-apk{padding:14px 32px;background:rgba(255,255,255,.12);color:#fff;border:2px solid rgba(255,255,255,.45);border-radius:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:9px;transition:all .2s;}
 .pp-btn-apk:hover{background:rgba(255,255,255,.22);}
-.pp-post-card{background:#fff;border-radius:18px;box-shadow:0 2px 12px rgba(93,64,55,.07);padding:22px 26px;margin-bottom:18px;animation:fadeUp .22s ease;}
-.pp-post-card:hover{box-shadow:0 8px 24px rgba(93,64,55,.13);}
+.pp-post-card{background:#fff;border-radius:18px;box-shadow:0 2px 12px rgba(26,107,42,.07);padding:22px 26px;margin-bottom:18px;animation:fadeUp .22s ease;}
+.pp-post-card:hover{box-shadow:0 8px 24px rgba(26,107,42,.13);}
 .pp-post-img{width:100%;border-radius:12px;max-height:360px;object-fit:cover;margin-top:14px;}
 .pp-read-more{color:var(--br);font-weight:700;cursor:pointer;font-size:13px;border:none;background:none;padding:3px 0 0;font-family:'DM Sans',sans-serif;}
 .pp-stats-bar{background:#fff;border-bottom:1px solid var(--crd);padding:14px 24px;display:flex;gap:32px;justify-content:center;flex-wrap:wrap;}
@@ -434,7 +434,7 @@ body.exam-active .exam-opt,body.exam-active button,body.exam-active input,body.e
 <!-- LOGIN -->
 <div id="login-screen" style="min-height:calc(100vh - 62px);display:none;align-items:flex-start;justify-content:center;padding:24px;">
   <div style="width:100%;max-width:420px;">
-  <div style="background:#fff;border-radius:26px;box-shadow:0 20px 60px rgba(93,64,55,.14);padding:36px 32px;margin-bottom:14px;">
+  <div style="background:#fff;border-radius:26px;box-shadow:0 20px 60px rgba(26,107,42,.14);padding:36px 32px;margin-bottom:14px;">
     <div style="text-align:center;margin-bottom:28px;">
       <div id="login-logo" style="width:56px;height:56px;background:var(--br);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 14px;overflow:hidden;">🏫</div>
       <h2 class="hf" style="font-size:28px;color:var(--br);">Welcome Back</h2>
@@ -609,7 +609,7 @@ body.exam-active .exam-opt,body.exam-active button,body.exam-active input,body.e
 
 <div id="modal-root"></div>
 
-<div id="notif-panel" style="display:none;position:fixed;top:68px;right:18px;width:310px;background:#fff;border-radius:18px;box-shadow:0 12px 40px rgba(93,64,55,.18);z-index:500;overflow:hidden;">
+<div id="notif-panel" style="display:none;position:fixed;top:68px;right:18px;width:310px;background:#fff;border-radius:18px;box-shadow:0 12px 40px rgba(26,107,42,.18);z-index:500;overflow:hidden;">
   <div style="padding:14px 18px;border-bottom:1px solid var(--crd);display:flex;justify-content:space-between;align-items:center;">
     <span style="font-weight:700;font-size:14px;color:var(--br);">Notifications</span>
     <button onclick="document.getElementById('notif-panel').style.display='none'" style="border:none;background:none;cursor:pointer;color:var(--brl);font-size:17px;">&times;</button>
@@ -2289,7 +2289,13 @@ async function renderClasses(){
   setPage('Classes','Manage class groups',`<button onclick="showAddClassModal()" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> New Class</button>`);
   setContent('<div style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin fa-2x" style="color:var(--brl);"></i></div>');
   try{
-    let{data:classes}=await DB().from('classes').select('*, profiles(full_name)').order('name');
+    let{data:classes,error:clsErr}=await DB().from('classes').select('*, profiles(full_name)').order('name');
+    if(clsErr){
+      // Fallback: the embedded profiles join can fail silently on some setups — retry without it
+      const retry=await DB().from('classes').select('*').order('name');
+      classes=retry.data;
+      if(retry.error){setContent(`<div class="card" style="padding:32px;text-align:center;color:#EF4444;">${escapeHTML(retry.error.message)}</div>`);return;}
+    }
     // Role-based scope
     if(ROLE==='head_teacher') classes=(classes||[]).filter(c=>['kindergarten','nursery','primary'].includes((c.level||'').toLowerCase()));
     else if(ROLE==='principal') classes=(classes||[]).filter(c=>(c.level||'').toLowerCase()==='secondary');
@@ -2301,7 +2307,7 @@ async function renderClasses(){
       ${classes.map(c=>`<div class="card" style="padding:18px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:11px;">
           <div><div style="font-size:17px;font-weight:700;color:var(--br);">${escapeHTML(c.name)}${escapeHTML(c.arm?' '+c.arm:'')}</div>
-          <div style="font-size:12px;color:var(--brl);">Teacher: ${escapeHTML(c.profiles?.full_name||'Not assigned')}</div></div>
+          <div style="font-size:12px;color:var(--brl);">Teacher: ${escapeHTML(c.profiles?.full_name||c.teacher_name||'Not assigned')}</div></div>
           <div style="width:38px;height:38px;border-radius:11px;background:var(--cr);display:flex;align-items:center;justify-content:center;font-size:17px;">🏫</div>
         </div>
         <div style="display:flex;gap:7px;margin-top:13px;">
@@ -4090,8 +4096,8 @@ function buildResultSheet({
 
   // ── Logo ────────────────────────────────────────────────────────────────
   const logo=SS.logo_url
-    ?`<img src="${SS.logo_url}" style="width:52px;height:52px;object-fit:contain;display:block;filter:drop-shadow(0 1px 4px rgba(93,64,55,.25));">`
-    :`<div style="width:52px;height:52px;border-radius:50%;background:rgba(93,64,55,.08);border:2px solid rgba(93,64,55,.25);display:flex;align-items:center;justify-content:center;font-size:22px;">🏫</div>`;
+    ?`<img src="${SS.logo_url}" style="width:52px;height:52px;object-fit:contain;display:block;filter:drop-shadow(0 1px 4px rgba(26,107,42,.25));">`
+    :`<div style="width:52px;height:52px;border-radius:50%;background:rgba(26,107,42,.08);border:2px solid rgba(26,107,42,.25);display:flex;align-items:center;justify-content:center;font-size:22px;">🏫</div>`;
 
   // ── Term end / next term dates ──────────────────────────────────────────
   const termEndStr=SS.term_end_date
@@ -7625,7 +7631,7 @@ async function _genFeePDFFromRow(p,type){
   const logoData=await _loadLogoDataUrl(SS.logo_url||null);
 
   // Header band
-  pdf.setFillColor(93,64,55);pdf.rect(0,0,W,28,'F');
+  pdf.setFillColor(26,107,42);pdf.rect(0,0,W,28,'F');
   if(logoData){
     try{pdf.addImage(logoData,'JPEG',11,5,16,16);}catch(e){}
     pdf.setTextColor(255,255,255);pdf.setFontSize(11.5);pdf.setFont('helvetica','bold');
@@ -7665,7 +7671,7 @@ async function _genFeePDFFromRow(p,type){
   });
   y+=3;
   // Fee table header
-  pdf.setFillColor(93,64,55);pdf.rect(16,y,W-32,7,'F');
+  pdf.setFillColor(26,107,42);pdf.rect(16,y,W-32,7,'F');
   pdf.setTextColor(255,255,255);pdf.setFont('helvetica','bold');pdf.setFontSize(7.5);
   pdf.text('Description',20,y+5);pdf.text('Amount (\u20a6)',W-18,y+5,{align:'right'});
   y+=7;
@@ -7858,7 +7864,7 @@ async function generateBulkDocs(){
     const aR=isReceipt?22:37,aG=isReceipt?163:99,aB=isReceipt?74:235;
 
     // Header
-    pdf.setFillColor(93,64,55);pdf.rect(0,0,W,28,'F');
+    pdf.setFillColor(26,107,42);pdf.rect(0,0,W,28,'F');
     if(bulkLogo){
       try{pdf.addImage(bulkLogo,'JPEG',11,5,16,16);}catch(e){}
       pdf.setTextColor(255,255,255);pdf.setFontSize(11);pdf.setFont('helvetica','bold');
@@ -7893,7 +7899,7 @@ async function generateBulkDocs(){
     });
     y+=3;
 
-    pdf.setFillColor(93,64,55);pdf.rect(16,y,W-32,7,'F');
+    pdf.setFillColor(26,107,42);pdf.rect(16,y,W-32,7,'F');
     pdf.setTextColor(255,255,255);pdf.setFont('helvetica','bold');pdf.setFontSize(7);
     pdf.text('Fee Type',20,y+5);pdf.text('Amount',W-18,y+5,{align:'right'});y+=7;
 
@@ -9189,7 +9195,7 @@ async function downloadSubjRegPDF(){
   if(!regs?.length){toast('No registered subjects to export.','error');return;}
   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   const BR=SS.primary_color||'#1A6B2A';
-  pdf.setFillColor(93,64,55);
+  pdf.setFillColor(26,107,42);
   pdf.rect(0,0,210,30,'F');
   pdf.setTextColor(255,255,255);
   pdf.setFontSize(14);pdf.setFont('helvetica','bold');
@@ -9206,7 +9212,7 @@ async function downloadSubjRegPDF(){
   pdf.text(`Admission No: ${escapeHTML(UP?.admission_number||'—')}`,14,58);
   pdf.text(`Class: ${escapeHTML(UP?.class_name||'—')}`,14,64);
   pdf.text(`Session: ${sess}   Term: ${term}`,14,70);
-  pdf.setLineWidth(0.5);pdf.setDrawColor(93,64,55);pdf.line(14,74,196,74);
+  pdf.setLineWidth(0.5);pdf.setDrawColor(26,107,42);pdf.line(14,74,196,74);
   pdf.setFontSize(10);pdf.setFont('helvetica','bold');
   pdf.text('Registered Subjects',14,80);
   pdf.setFont('helvetica','normal');pdf.setFontSize(9);
@@ -11344,7 +11350,7 @@ async function loadScoreSheetPreview(){
 async function _buildScoreSheetPDF(cn,subj,term,sess,filled){
   await window._ensureJsPDF();const{jsPDF}=window.jspdf;
   const SS=SCHOOL_SETTINGS;
-  const BR=[93,64,55];
+  const BR=[26,107,42];
   // fetch students (always) and scores (only if filled)
   const[{data:students},{data:scores}]=await Promise.all([
     DB().from('students').select('id,full_name,admission_number').eq('class_id',
@@ -11654,7 +11660,7 @@ async function initExamMedia(examId, durationMins){
     <div style="display:flex;gap:0;width:100%;height:100%;">
       <div style="flex:1;position:relative;border-radius:8px 0 0 8px;overflow:hidden;border:2px solid #1A6B2A;">
         ${snapHtml}
-        <div style="position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:8px;font-weight:700;color:#fff;background:rgba(93,64,55,.75);padding:2px;">✅ VERIFIED</div>
+        <div style="position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:8px;font-weight:700;color:#fff;background:rgba(26,107,42,.75);padding:2px;">✅ VERIFIED</div>
       </div>
       <div style="flex:1;position:relative;border-radius:0 8px 8px 0;overflow:hidden;border:2px solid #22C55E;">
         <video autoplay muted playsinline id="cbt-vid" style="width:100%;height:100%;object-fit:cover;transform:scaleX(-1);"></video>
@@ -14763,7 +14769,7 @@ async function generateAdmissionPDF(adm, isOnline=false, showReceipt=false){
   const addLetterhead=async(pageNum)=>{
     if(pageNum>1) pdf.addPage();
     // Brown header bar
-    pdf.setFillColor(93,64,55);
+    pdf.setFillColor(26,107,42);
     pdf.rect(0,0,W,30,'F');
     // Logo
     if(SS.logo_url){
@@ -14796,7 +14802,7 @@ async function generateAdmissionPDF(adm, isOnline=false, showReceipt=false){
   // Title
   pdf.setFontSize(13);pdf.setFont('helvetica','bold');pdf.setTextColor(0,0,0);
   pdf.text('ADMISSION OFFER LETTER',W/2,y+4,{align:'center'});
-  pdf.setDrawColor(93,64,55);pdf.setLineWidth(0.5);pdf.line(30,y+7,W-30,y+7);
+  pdf.setDrawColor(26,107,42);pdf.setLineWidth(0.5);pdf.line(30,y+7,W-30,y+7);
   y+=13;
 
   // To line
@@ -14830,7 +14836,7 @@ async function generateAdmissionPDF(adm, isOnline=false, showReceipt=false){
   // Admission Details Box
   pdf.setFillColor(248,248,248);pdf.setDrawColor(200,200,200);pdf.setLineWidth(0.4);
   pdf.roundedRect(15,y,W-30,36,3,3,'FD');
-  pdf.setFontSize(9);pdf.setFont('helvetica','bold');pdf.setTextColor(93,64,55);
+  pdf.setFontSize(9);pdf.setFont('helvetica','bold');pdf.setTextColor(26,107,42);
   pdf.text('ADMISSION DETAILS', 20, y+7);
   pdf.setFont('helvetica','normal');pdf.setTextColor(0,0,0);pdf.setFontSize(9);
   const dets=[
@@ -14930,7 +14936,7 @@ async function generateAdmissionPDF(adm, isOnline=false, showReceipt=false){
 
   pdf.setFontSize(12);pdf.setFont('helvetica','bold');pdf.setTextColor(0,0,0);
   pdf.text('ADMISSION FORM — COMPLETED COPY',W/2,y+6,{align:'center'});
-  pdf.setDrawColor(93,64,55);pdf.setLineWidth(0.5);pdf.line(15,y+10,W-15,y+10);
+  pdf.setDrawColor(26,107,42);pdf.setLineWidth(0.5);pdf.line(15,y+10,W-15,y+10);
   y+=16;
 
   const fields=[
@@ -14956,7 +14962,7 @@ async function generateAdmissionPDF(adm, isOnline=false, showReceipt=false){
   let col=0;
   for(const [k,v] of fields){
     const x=col===0?15:108;
-    pdf.setFont('helvetica','bold');pdf.setTextColor(93,64,55);pdf.text(k+':',x,y);
+    pdf.setFont('helvetica','bold');pdf.setTextColor(26,107,42);pdf.text(k+':',x,y);
     pdf.setFont('helvetica','normal');pdf.setTextColor(0,0,0);
     pdf.text(String(v||'—').substring(0,36),x+28,y);
     col=(col+1)%2;
@@ -14964,7 +14970,7 @@ async function generateAdmissionPDF(adm, isOnline=false, showReceipt=false){
     if(y>270){y=await addLetterhead(pdf.getNumberOfPages()+1);y+=14;}
   }
   y+=12;
-  pdf.setDrawColor(93,64,55);pdf.setLineWidth(0.4);pdf.line(15,y,W-15,y);
+  pdf.setDrawColor(26,107,42);pdf.setLineWidth(0.4);pdf.line(15,y,W-15,y);
   pdf.setFontSize(7.5);pdf.setTextColor(130,130,130);
   pdf.text('Official document of '+schoolName+'. Generated: '+today+(isOnline?' | Submitted Online':''),W/2,y+5,{align:'center'});
   // Page 2 signature block
@@ -14997,7 +15003,7 @@ async function generateAdmissionPDF(adm, isOnline=false, showReceipt=false){
   const hasPayment=(adm.amount_paid&&adm.amount_paid>0)||(adm.admission_fee&&adm.admission_fee>0);
   if(hasPayment){
     y=await addLetterhead(pdf.getNumberOfPages()+1);
-    pdf.setFillColor(93,64,55);pdf.roundedRect(15,y,W-30,18,3,3,'F');
+    pdf.setFillColor(26,107,42);pdf.roundedRect(15,y,W-30,18,3,3,'F');
     pdf.setFontSize(12);pdf.setFont('helvetica','bold');pdf.setTextColor(255,255,255);
     pdf.text('PAYMENT RECEIPT',W/2,y+11,{align:'center'});
     y+=24;
@@ -15011,18 +15017,18 @@ async function generateAdmissionPDF(adm, isOnline=false, showReceipt=false){
 
     // Student info box
     pdf.setFillColor(248,241,227);pdf.setDrawColor(200,180,160);pdf.roundedRect(15,y,W-30,22,3,3,'FD');
-    pdf.setFontSize(9);pdf.setFont('helvetica','bold');pdf.setTextColor(93,64,55);
+    pdf.setFontSize(9);pdf.setFont('helvetica','bold');pdf.setTextColor(26,107,42);
     pdf.text('RECEIVED FROM:', 20, y+7);
     pdf.setFont('helvetica','normal');pdf.setTextColor(0,0,0);
     pdf.text(adm.full_name||'—', 65, y+7);
-    pdf.setFont('helvetica','bold');pdf.setTextColor(93,64,55);
+    pdf.setFont('helvetica','bold');pdf.setTextColor(26,107,42);
     pdf.text('CLASS:', 20, y+14);
     pdf.setFont('helvetica','normal');pdf.setTextColor(0,0,0);
     pdf.text(adm.class_applied||'—', 65, y+14);
     y+=28;
 
     // Payment table
-    pdf.setFillColor(93,64,55);pdf.rect(15,y,W-30,9,'F');
+    pdf.setFillColor(26,107,42);pdf.rect(15,y,W-30,9,'F');
     pdf.setFont('helvetica','bold');pdf.setTextColor(255,255,255);pdf.setFontSize(8.5);
     pdf.text('DESCRIPTION', 20, y+6);
     pdf.text('AMOUNT', W-20, y+6,{align:'right'});
@@ -15265,7 +15271,7 @@ function _buildInvoicePDF(stu,filtered,session,term,SS,logoImg){
   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   const W=210,ML=15;let y=10;
   // Header
-  pdf.setFillColor(93,64,55);pdf.rect(0,0,W,28,'F');
+  pdf.setFillColor(26,107,42);pdf.rect(0,0,W,28,'F');
   if(logoImg){try{pdf.addImage(logoImg,'JPEG',8,4,18,18,undefined,'FAST');}catch(e){}}
   pdf.setTextColor(255,255,255);pdf.setFontSize(12);pdf.setFont('helvetica','bold');
   pdf.text((SS.school_name||'School').toUpperCase(),W/2,10,{align:'center'});
@@ -15275,14 +15281,14 @@ function _buildInvoicePDF(stu,filtered,session,term,SS,logoImg){
   y=34;
   pdf.setTextColor(0,0,0);pdf.setFontSize(12);pdf.setFont('helvetica','bold');
   pdf.text('FEE INVOICE',W/2,y,{align:'center'});
-  pdf.setDrawColor(93,64,55);pdf.setLineWidth(0.5);pdf.line(ML,y+3,W-ML,y+3);y+=10;
+  pdf.setDrawColor(26,107,42);pdf.setLineWidth(0.5);pdf.line(ML,y+3,W-ML,y+3);y+=10;
   pdf.setFontSize(9);pdf.setFont('helvetica','normal');
   pdf.text('Student: '+(stu?.full_name||'—'),ML,y);
   pdf.text('Adm No: '+(stu?.admission_number||'—'),W/2,y);y+=6;
   pdf.text('Class: '+(stu?.class_name||'—'),ML,y);
   pdf.text('Session: '+(session||'—')+' | Term: '+(term||'—'),W/2,y);y+=10;
   // Table header
-  pdf.setFillColor(93,64,55);pdf.rect(ML,y,W-ML*2,9,'F');
+  pdf.setFillColor(26,107,42);pdf.rect(ML,y,W-ML*2,9,'F');
   pdf.setTextColor(255,255,255);pdf.setFont('helvetica','bold');pdf.setFontSize(9);
   pdf.text('Fee Description',ML+5,y+6);
   pdf.text('Amount (₦)',W-ML,y+6,{align:'right'});y+=9;
@@ -15297,7 +15303,7 @@ function _buildInvoicePDF(stu,filtered,session,term,SS,logoImg){
     total+=parseFloat(fa.amount)||0;y+=9;
   });
   // Total row
-  pdf.setFillColor(93,64,55);pdf.rect(ML,y,W-ML*2,10,'F');
+  pdf.setFillColor(26,107,42);pdf.rect(ML,y,W-ML*2,10,'F');
   pdf.setTextColor(255,255,255);pdf.setFont('helvetica','bold');pdf.setFontSize(10);
   pdf.text('TOTAL',ML+5,y+7);
   pdf.text('₦'+total.toLocaleString(),W-ML,y+7,{align:'right'});y+=18;
@@ -15319,7 +15325,7 @@ function _buildReceiptPDF(stu,filtered,session,term,SS,logoImg){
   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   const W=210,ML=15;let y=10;
   // Header
-  pdf.setFillColor(93,64,55);pdf.rect(0,0,W,28,'F');
+  pdf.setFillColor(26,107,42);pdf.rect(0,0,W,28,'F');
   if(logoImg){try{pdf.addImage(logoImg,'JPEG',8,4,18,18,undefined,'FAST');}catch(e){}}
   pdf.setTextColor(255,255,255);pdf.setFontSize(12);pdf.setFont('helvetica','bold');
   pdf.text((SS.school_name||'School').toUpperCase(),W/2,10,{align:'center'});
@@ -15329,14 +15335,14 @@ function _buildReceiptPDF(stu,filtered,session,term,SS,logoImg){
   y=34;
   pdf.setTextColor(0,0,0);pdf.setFontSize(12);pdf.setFont('helvetica','bold');
   pdf.text('PAYMENT RECEIPT',W/2,y,{align:'center'});
-  pdf.setDrawColor(93,64,55);pdf.setLineWidth(0.5);pdf.line(ML,y+3,W-ML,y+3);y+=10;
+  pdf.setDrawColor(26,107,42);pdf.setLineWidth(0.5);pdf.line(ML,y+3,W-ML,y+3);y+=10;
   pdf.setFontSize(9);pdf.setFont('helvetica','normal');
   pdf.text('Student: '+(stu?.full_name||'—'),ML,y);
   pdf.text('Adm No: '+(stu?.admission_number||'—'),W/2,y);y+=6;
   pdf.text('Class: '+(stu?.class_name||'—'),ML,y);
   pdf.text('Session: '+(session||'—')+' | Term: '+(term||'—'),W/2,y);y+=10;
   // Table header
-  pdf.setFillColor(93,64,55);pdf.rect(ML,y,W-ML*2,9,'F');
+  pdf.setFillColor(26,107,42);pdf.rect(ML,y,W-ML*2,9,'F');
   pdf.setTextColor(255,255,255);pdf.setFont('helvetica','bold');pdf.setFontSize(9);
   // Fix: use W-ML-5 so amount text stays inside the table rect (rect ends at W-ML*2=180, text right-aligned at 178)
   const amtX=W-ML*2-2;
@@ -16811,7 +16817,7 @@ async function printClassStudentListPDF(){
     const W=210,ML=10,MR=10,CW=W-ML-MR;
     let y=0;
     // ── Header ──
-    pdf.setFillColor(93,64,55);pdf.rect(0,0,W,22,'F');
+    pdf.setFillColor(26,107,42);pdf.rect(0,0,W,22,'F');
     if(SS.logo_url){try{const img=await loadImageForPDF(SS.logo_url);pdf.addImage(img,'JPEG',ML,2,17,17,undefined,'FAST');}catch(e){}}
     pdf.setTextColor(255,255,255);pdf.setFont('helvetica','bold');pdf.setFontSize(11);
     pdf.text((SS.school_name||'School').toUpperCase(),W/2,9,{align:'center'});
@@ -16822,7 +16828,7 @@ async function printClassStudentListPDF(){
     pdf.text('CLASS STUDENT LIST',W/2,y,{align:'center'});y+=4;
     pdf.setFont('helvetica','normal');pdf.setFontSize(8.5);pdf.setTextColor(80,80,80);
     pdf.text('Class: '+cname,W/2,y,{align:'center'});y+=3;
-    pdf.setDrawColor(93,64,55);pdf.setLineWidth(0.4);pdf.line(ML,y,W-MR,y);y+=4;
+    pdf.setDrawColor(26,107,42);pdf.setLineWidth(0.4);pdf.line(ML,y,W-MR,y);y+=4;
     // ── Column layout ──
     const total=students.length;
     const USE3=total>50;
@@ -16837,7 +16843,7 @@ async function printClassStudentListPDF(){
     // ── Column headers ──
     for(let col=0;col<NCOLS;col++){
       const ox=ML+col*colW;
-      pdf.setFillColor(93,64,55);pdf.rect(ox,y,colW-1,6,'F');
+      pdf.setFillColor(26,107,42);pdf.rect(ox,y,colW-1,6,'F');
       pdf.setTextColor(255,255,255);pdf.setFont('helvetica','bold');pdf.setFontSize(6.5);
       let hx=ox;
       ['#','Student Name','Sex','Adm No'].forEach((h,hi)=>{
@@ -17042,7 +17048,7 @@ async function hubDownloadSubjRegPDF(){
   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});let first=true;
   for(const[,d] of Object.entries(byStudent)){
     if(!first)pdf.addPage();first=false;
-    pdf.setFillColor(93,64,55);pdf.rect(0,0,210,26,'F');
+    pdf.setFillColor(26,107,42);pdf.rect(0,0,210,26,'F');
     pdf.setTextColor(255,255,255);pdf.setFontSize(12);pdf.setFont('helvetica','bold');
     pdf.text(SS.school_name||'APEX ACADEMY GLOBAL SCHOOLS',105,12,{align:'center'});
     pdf.setFontSize(8);pdf.setFont('helvetica','italic');pdf.text(SS.motto||'',105,18,{align:'center'});
@@ -17051,7 +17057,7 @@ async function hubDownloadSubjRegPDF(){
     pdf.setFontSize(9);pdf.setFont('helvetica','normal');
     pdf.text(`Student: ${escapeHTML(d.name)}`,14,46);pdf.text(`Admission: ${d.adm||'—'}`,14,52);
     pdf.text(`Class: ${_hubCname}    Session: ${sess}    Term: ${term}`,14,58);
-    pdf.setLineWidth(0.4);pdf.setDrawColor(93,64,55);pdf.line(14,62,196,62);
+    pdf.setLineWidth(0.4);pdf.setDrawColor(26,107,42);pdf.line(14,62,196,62);
     pdf.setFontSize(9);pdf.setFont('helvetica','bold');pdf.text('Registered Subjects:',14,69);
     pdf.setFont('helvetica','normal');
     d.subs.forEach((s,i)=>{const x=i%2===0?14:110,y=77+Math.floor(i/2)*7;pdf.text(`${i+1}. ${s}`,x,y);});
@@ -17329,7 +17335,7 @@ async function hubLoadSSPreview(){
 async function hubDownloadSSPDF(subj,term,sess,filled=false){
   toast(filled?'Generating Filled Sheet…':'Generating Blank Sheet…');
   await window._ensureJsPDF();const{jsPDF}=window.jspdf;const SS=SCHOOL_SETTINGS;
-  const BR=[93,64,55];
+  const BR=[26,107,42];
   // ── Fetch students + scores ──
   const[{data:students},{data:scores}]=await Promise.all([
     DB().from('students').select('id,full_name,admission_number').eq('class_id',_hubCid).order('full_name'),
@@ -17751,19 +17757,19 @@ async function hubDownloadPinSheet(){
   const pm={};(pins||[]).forEach(p=>pm[p.student_id]=p.pin);
   await window._ensureJsPDF();const{jsPDF}=window.jspdf;const SS=SCHOOL_SETTINGS;
   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});const W=210;
-  pdf.setFillColor(93,64,55);pdf.rect(0,0,W,26,'F');
+  pdf.setFillColor(26,107,42);pdf.rect(0,0,W,26,'F');
   pdf.setTextColor(255,255,255);pdf.setFontSize(12);pdf.setFont('helvetica','bold');
   pdf.text(SS.school_name||'APEX ACADEMY GLOBAL SCHOOLS',W/2,11,{align:'center'});
   pdf.setFontSize(7.5);pdf.setFont('helvetica','italic');pdf.text(SS.motto||'',W/2,17,{align:'center'});
   pdf.setTextColor(0,0,0);pdf.setFontSize(11);pdf.setFont('helvetica','bold');
   pdf.text(`Result PIN Sheet — ${_hubCname}`,W/2,36,{align:'center'});
-  pdf.setLineWidth(0.4);pdf.setDrawColor(93,64,55);pdf.line(14,40,W-14,40);
+  pdf.setLineWidth(0.4);pdf.setDrawColor(26,107,42);pdf.line(14,40,W-14,40);
   pdf.setFontSize(8.5);pdf.setFont('helvetica','normal');
   let y=48;
   students.forEach((s,i)=>{
     if(y>274){pdf.addPage();y=20;}
     const x=i%2===0?14:110;if(i%2===0&&i>0)y+=12;
-    pdf.setFont('helvetica','bold');pdf.setTextColor(93,64,55);
+    pdf.setFont('helvetica','bold');pdf.setTextColor(26,107,42);
     pdf.text(`${escapeHTML(fmtStuName(s.full_name))}`,x,y);
     pdf.setFont('helvetica','normal');pdf.setTextColor(0,0,0);
     pdf.text(`Adm: ${escapeHTML(s.admission_number||'—')}`,x,y+4.5);
@@ -19032,7 +19038,7 @@ function buildLoginDetailsEmailHtml({toName,email,password,role}){
 <body style="margin:0;padding:0;background:#F0F7F0;font-family:'Segoe UI',Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#F0F7F0;padding:30px 0;">
 <tr><td align="center">
-<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(93,64,55,.13);">
+<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(26,107,42,.13);">
 <!-- Header -->
 <tr><td style="background:${pc};padding:28px 32px;text-align:center;">
   ${logo?`<img src="${logo}" alt="Logo" style="height:60px;object-fit:contain;border-radius:12px;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto;">`:'<div style="font-size:40px;margin-bottom:10px;">🏫</div>'}
@@ -19311,7 +19317,7 @@ function _showInstallBanner() {
     'font-size:13.5px',
     'font-weight:700',
     'font-family:\'DM Sans\',sans-serif',
-    'box-shadow:0 8px 32px rgba(93,64,55,.18)',
+    'box-shadow:0 8px 32px rgba(26,107,42,.18)',
     'display:flex',
     'align-items:center',
     'gap:12px',
@@ -20134,10 +20140,10 @@ const _aiResultObserver = { observe:()=>{} }; // deprecated
 .idc-class-card{
   background:#fff;border-radius:16px;padding:18px 20px;cursor:pointer;
   border:2px solid transparent;transition:all .2s;
-  box-shadow:0 2px 10px rgba(93,64,55,.08);
+  box-shadow:0 2px 10px rgba(26,107,42,.08);
   display:flex;align-items:center;gap:14px;
 }
-.idc-class-card:hover{border-color:var(--br);transform:translateY(-2px);box-shadow:0 8px 24px rgba(93,64,55,.13);}
+.idc-class-card:hover{border-color:var(--br);transform:translateY(-2px);box-shadow:0 8px 24px rgba(26,107,42,.13);}
 .idc-class-card.selected{border-color:var(--br);background:#FDF6EE;}
 .idc-stu-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:11px;transition:background .15s;border-bottom:1px solid #F0F7F0;}
 .idc-stu-row:hover{background:#FDFAF5;}
@@ -20183,7 +20189,7 @@ const _aiResultObserver = { observe:()=>{} }; // deprecated
   flex-shrink:0;
 }
 .pvc-back-body{flex:1;padding:9px 12px;display:flex;flex-direction:column;justify-content:space-between;min-height:0;overflow:hidden;}
-.pvc-property-banner{background:linear-gradient(90deg,rgba(93,64,55,.08),rgba(93,64,55,.04));border-left:3px solid #1A6B2A;padding:4px 8px;border-radius:0 6px 6px 0;margin-bottom:6px;}
+.pvc-property-banner{background:linear-gradient(90deg,rgba(26,107,42,.08),rgba(26,107,42,.04));border-left:3px solid #1A6B2A;padding:4px 8px;border-radius:0 6px 6px 0;margin-bottom:6px;}
 .pvc-property-text{font-size:6px;font-weight:800;color:#1A6B2A;letter-spacing:.06em;text-transform:uppercase;}
 .pvc-back-fields{display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;flex:1;}
 .pvc-back-field{display:flex;flex-direction:column;gap:1px;}
@@ -20228,7 +20234,7 @@ async function renderIDCards(){
 
   <!-- STUDENT TAB -->
   <div id="idcTab-students-panel">
-    <div style="background:#fff;border-radius:18px;box-shadow:0 2px 12px rgba(93,64,55,.07);padding:22px;margin-bottom:18px;">
+    <div style="background:#fff;border-radius:18px;box-shadow:0 2px 12px rgba(26,107,42,.07);padding:22px;margin-bottom:18px;">
       <h3 style="font-size:16px;font-weight:700;color:var(--br);margin-bottom:5px;display:flex;align-items:center;gap:9px;">
         <i class="fas fa-chalkboard"></i> Select a Class
       </h3>
@@ -20251,7 +20257,7 @@ async function renderIDCards(){
 
   <!-- STAFF TAB -->
   <div id="idcTab-staff-panel" style="display:none;">
-    <div style="background:#fff;border-radius:18px;box-shadow:0 2px 12px rgba(93,64,55,.07);padding:22px;">
+    <div style="background:#fff;border-radius:18px;box-shadow:0 2px 12px rgba(26,107,42,.07);padding:22px;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
         <h3 style="font-size:16px;font-weight:700;color:var(--br);display:flex;align-items:center;gap:9px;">
           <i class="fas fa-user-tie"></i> Staff Members (${(staff||[]).length})
@@ -20319,7 +20325,7 @@ async function _idcSelectClass(classId, className) {
   (students||[]).forEach(s => { window._idcPersonCache[s.id] = s; });
 
   panel.innerHTML = `
-  <div style="background:#fff;border-radius:18px;box-shadow:0 2px 12px rgba(93,64,55,.07);padding:22px;">
+  <div style="background:#fff;border-radius:18px;box-shadow:0 2px 12px rgba(26,107,42,.07);padding:22px;">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px;">
       <div>
         <h3 style="font-size:16px;font-weight:700;color:var(--br);display:flex;align-items:center;gap:9px;">
