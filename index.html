@@ -500,13 +500,8 @@ body.exam-active .exam-opt,body.exam-active button,body.exam-active input,body.e
     </div>
     <!-- PIN CHECK (was lf2, now lf3) -->
     <div id="lf3" style="display:none;">
-  <div style="background:var(--cr);border-radius:12px;padding:13px;margin-bottom:16px;font-size:12.5px;color:var(--brl);"><i class="fas fa-info-circle" style="color:var(--br);"></i> Enter your admission number, PIN, term and session to view your result.</div>
-  <div style="margin-bottom:14px;"><label class="lbl">Admission Number</label><input id="pin-adm" class="input" type="text" placeholder="e.g. APEX/2024/001"></div>
-  <div style="margin-bottom:14px;"><label class="lbl">Result PIN (12 characters)</label><input id="pin-code" class="input" type="text" placeholder="Case-sensitive 12-character PIN"></div>
-  <div style="display:flex;gap:9px;margin-bottom:18px;">
-    <div style="flex:1;"><label class="lbl">Term</label><select id="pin-term" class="input"><option>1st Term</option><option>2nd Term</option><option>3rd Term</option></select></div>
-    <div style="flex:1;"><label class="lbl">Session</label><select id="pin-sess" class="input"><option>2024/2025</option><option>2025/2026</option><option>2026/2027</option><option>2027/2028</option><option>2028/2029</option><option>2029/2030</option><option>2030/2031</option><option>2031/2032</option><option>2032/2033</option></select></div>
-  </div>
+  <div style="background:var(--cr);border-radius:12px;padding:13px;margin-bottom:16px;font-size:12.5px;color:var(--brl);"><i class="fas fa-info-circle" style="color:var(--br);"></i> Enter your Result PIN to view and download your result. No login required.</div>
+  <div style="margin-bottom:18px;"><label class="lbl">Result PIN</label><input id="pin-code" class="input" type="text" placeholder="Case-sensitive PIN" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false"></div>
   <button onclick="pinLogin()" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;font-size:14px;border-radius:13px;">Check Result <i class="fas fa-search"></i></button>
 </div>
     <!-- CBT / PUBLIC ACCESS lf4 -->
@@ -621,44 +616,13 @@ body.exam-active .exam-opt,body.exam-active button,body.exam-active input,body.e
 
 <script>
  // ── Auto-load result when QR code is scanned ─────────────────────────
-(async function handleQRScan(){
+(function handleQRScan(){
   const p=new URLSearchParams(window.location.search);
   if(p.get('scan')!=='1') return;
-  const adm=p.get('adm')||'';
-  const term=p.get('term')||'';
-  const sess=p.get('sess')||'';
   const pin=p.get('pin')||'';
-  if(!adm) return;
-  window.addEventListener('DOMContentLoaded',async()=>{
-    loginTab(3);
-    const admEl=document.getElementById('pin-adm');
-    const pinEl=document.getElementById('pin-code');
-    const termEl=document.getElementById('pin-term');
-    const sessEl=document.getElementById('pin-sess');
-    if(admEl) admEl.value=adm;
-    // Validate pin against result_pins table
-    if(pin){
-      // First try the provided pin directly
-      try{
-        const{data:st}=await DB().from('students').select('id').eq('admission_number',adm.toUpperCase()).single();
-        if(st){
-          const{data:pd}=await DB().from('result_pins').select('pin').eq('student_id',st.id).limit(1);
-          if(pd&&pd.length){
-            if(pinEl) pinEl.value=pd[0].pin;
-          } else {
-            if(pinEl) pinEl.value=pin;
-          }
-        } else { if(pinEl) pinEl.value=pin; }
-      }catch(e){ if(pinEl) pinEl.value=pin; }
-    }
-    if(termEl){
-      [...termEl.options].forEach(o=>{if(o.value===term||o.text===term)o.selected=true;});
-    }
-    if(sessEl){
-      [...sessEl.options].forEach(o=>{if(o.value===sess||o.text===sess)o.selected=true;});
-    }
-    setTimeout(()=>pinLogin(),600);
-  });
+  // Store synchronously so the main boot init can pick it up after getSession()
+  // resolves — no fragile setTimeout race needed.
+  if(pin) window._pendingQRScan=pin;
 })();
 // ── Auto-show verification card when QR code on ID card is scanned ───
 (function handleVerifyScan(){
@@ -826,6 +790,16 @@ const GS=[
   {min:0, max:39, g:'F', r:'Fail',      c:'#EF4444'},
 ];
 const grade = s => { const v=parseFloat(s); if(isNaN(v)) return {g:'—',r:'—',c:'#999'}; return GS.find(x=>v>=x.min&&v<=x.max)||GS[GS.length-1]; };
+/* ── Absent-aware grade resolver ──
+   A student is "Absent" for a subject when both CA and Exam were entered as "-".
+   Such rows are saved with grade:'AB', remark:'Absent', ca_score/exam_score/total:null.
+   Use this instead of grade(total) wherever a saved result row (r) is being displayed. */
+const isAbsentEntry = (ca,ex) => String(ca).trim()==='-' && String(ex).trim()==='-';
+const resolveGrade = r => {
+  if(!r) return {g:'—',r:'—',c:'#999'};
+  if(r.is_absent||r.grade==='AB'||r.remark==='Absent') return {g:'AB',r:'Absent',c:'#EF4444'};
+  return r.total!=null ? grade(r.total) : {g:'—',r:'—',c:'#999'};
+};
 const passFail = avg => parseFloat(avg) >= 44 ? 'PASS' : 'FAIL';
 const passFailColor = avg => parseFloat(avg) >= 44 ? '#16A34A' : '#EF4444';
 // ─── PUPIL / STUDENT LABEL HELPER ───────────────────────────
@@ -1276,22 +1250,17 @@ async function studentLogin(){
 
 async function pinLogin(){
   const lockMsg=_rlCheck('pin'); if(lockMsg){authMsg('❌ '+lockMsg);return;}
-  const adm=document.getElementById('pin-adm').value.trim().toUpperCase();
   const pin=document.getElementById('pin-code').value.trim();
-  const term=document.getElementById('pin-term')?.value||'1st Term';
-  const sess=document.getElementById('pin-sess')?.value||'2024/2025';
-  if(!pin||!adm){authMsg('Fill in all fields.');return;}
+  if(!pin){authMsg('Enter your Result PIN.');return;}
   try{
-    // Issue 10 fix: PIN verified server-side via bcrypt — hash never reaches browser
-    const{data:pvResult,error:pvErr}=await window._callEdgeFn('verify-result-pin',{
-      admission_number:adm,
-      pin
-    });
-    if(pvErr||!pvResult?.valid){_rlFail('pin');authMsg('❌ Invalid PIN for this student.');return;}
+    // PIN is verified server-side (no admission number needed — the PIN itself
+    // encodes class/session/term and is matched exactly, case-sensitive).
+    const{data:pvResult,error:pvErr}=await window._callEdgeFn('verify-result-pin-v2',{pin});
+    if(pvErr||!pvResult?.valid){_rlFail('pin');authMsg('❌ Invalid PIN. Please check and try again.');return;}
     _rlSuccess('pin');
     const st=pvResult.student;
     CU={id:st.id};
-    UP={...st,_pin_term:term,_pin_sess:sess};
+    UP={...st,_pin_term:pvResult.term,_pin_sess:pvResult.session,_pin_payload:pvResult.payload||null};
     ROLE='pin_viewer';
     boot();
   }catch(e){console.error('[pinLogin]',e);authMsg('❌ An error occurred. Please try again.');}
@@ -1490,8 +1459,10 @@ const MENUS={
     {i:'fa-chalkboard',l:'Classes',f:'renderClasses'},
     {i:'fa-book',l:'Subjects',f:'renderSubjects'},
     {i:'fa-user-tie',l:'Staff & Teachers',f:'renderStaff'},
+    {i:'fa-right-left',l:'Fix Name Order',f:'renderFixNameOrder'},
     {i:'fa-people-arrows',l:'Assignments',f:'renderAssignments'},
     {i:'fa-book-open',l:'Results',f:'renderResults'},
+    {i:'fa-clipboard-check',l:'Monitor Scores',f:'renderMonitorScores'},
     {i:'fa-file-pdf',l:'Score Sheet',f:'renderScoreSheet'},
     {i:'fa-table',l:'Mark Sheet',f:'renderMarkSheet'},
     {i:'fa-file-pdf',l:'Combined PDF',f:'renderCombinedPDFPage'},
@@ -1524,8 +1495,10 @@ const MENUS={
     {i:'fa-chalkboard',l:'Classes',f:'renderClasses'},
     {i:'fa-book',l:'Subjects',f:'renderSubjects'},
     {i:'fa-user-tie',l:'Staff & Teachers',f:'renderStaff'},
+    {i:'fa-right-left',l:'Fix Name Order',f:'renderFixNameOrder'},
     {i:'fa-people-arrows',l:'Assignments',f:'renderAssignments'},
     {i:'fa-book-open',l:'Results',f:'renderResults'},
+    {i:'fa-clipboard-check',l:'Monitor Scores',f:'renderMonitorScores'},
     {i:'fa-file-pdf',l:'Score Sheet',f:'renderScoreSheet'},
     {i:'fa-table',l:'Mark Sheet',f:'renderMarkSheet'},
     {i:'fa-file-pdf',l:'Combined PDF',f:'renderCombinedPDFPage'},
@@ -1557,8 +1530,10 @@ const MENUS={
     {i:'fa-chalkboard',l:'Classes',f:'renderClasses'},
     {i:'fa-book',l:'Subjects',f:'renderSubjects'},
     {i:'fa-user-tie',l:'Staff & Teachers',f:'renderStaff'},
+    {i:'fa-right-left',l:'Fix Name Order',f:'renderFixNameOrder'},
     {i:'fa-people-arrows',l:'Assignments',f:'renderAssignments'},
     {i:'fa-book-open',l:'Results',f:'renderResults'},
+    {i:'fa-clipboard-check',l:'Monitor Scores',f:'renderMonitorScores'},
     {i:'fa-file-pdf',l:'Combined PDF',f:'renderCombinedPDFPage'},
     {i:'fa-laptop',l:'CBT Exams',f:'renderCBT'},
     {i:'fa-calendar-check',l:'Attendance',f:'renderAttendance'},
@@ -1589,6 +1564,7 @@ const MENUS={
     {i:'fa-user-tie',l:'Staff',f:'renderStaff'},
     {i:'fa-people-arrows',l:'Assignments',f:'renderAssignments'},
     {i:'fa-book-open',l:'Results',f:'renderResults'},
+    {i:'fa-clipboard-check',l:'Monitor Scores',f:'renderMonitorScores'},
     {i:'fa-file-pdf',l:'Combined PDF',f:'renderCombinedPDFPage'},
     {i:'fa-laptop',l:'CBT Exams',f:'renderCBT'},
     {i:'fa-calendar-check',l:'Attendance',f:'renderAttendance'},
@@ -1614,6 +1590,7 @@ const MENUS={
     {i:'fa-user-tie',l:'Staff',f:'renderStaff'},
     {i:'fa-people-arrows',l:'Assignments',f:'renderAssignments'},
     {i:'fa-book-open',l:'Results',f:'renderResults'},
+    {i:'fa-clipboard-check',l:'Monitor Scores',f:'renderMonitorScores'},
     {i:'fa-file-pdf',l:'Combined PDF',f:'renderCombinedPDFPage'},
     {i:'fa-laptop',l:'CBT Exams',f:'renderCBT'},
     {i:'fa-calendar-check',l:'Attendance',f:'renderAttendance'},
@@ -1965,7 +1942,7 @@ const _rtDebounce = {};      // keyed by table name, holds setTimeout id
 // Which render function to call when a table changes, based on active page.
 // Each entry: [table, [candidate render functions in priority order]]
 const _RT_MAP = [
-  ['results',             ['loadSheet','renderResults','renderMyResults','renderParentResults','renderScoreSheet','loadScoreSheetPreview','loadMarkSheetPreview']],
+  ['results',             ['loadSheet','renderResults','renderMyResults','renderParentResults','renderScoreSheet','loadScoreSheetPreview','loadMarkSheetPreview','renderMonitorScores','loadMonitorScores']],
   ['affective_traits',    ['loadSheet','renderResults','renderMyResults']],
   ['attendance_records',  ['loadDaySheet','loadWeekView','loadWeekPanel','renderAttendance','renderParentAttendance']],
   ['attendance_week_logs',['loadWeekView','loadWeekPanel','renderAttendance']],
@@ -1992,7 +1969,7 @@ const _RT_MAP = [
   ['class_subjects',      ['loadClassSubjects','renderClasses']],
   ['classes',             ['renderClasses','renderDashboard']],
   ['subjects',            ['renderSubjects']],
-  ['result_pins',         ['renderResultPins','renderResultPinsTab']],
+  ['result_pins_v2',         ['renderResultPins','renderResultPinsTab']],
   ['signup_requests',     ['renderSignUpProfiles']],
   ['fee_receipts',        ['renderFeeReceipts','loadFeeReceipts']],
   ['public_posts',        ['loadPublicFeed','renderPublicPosts']],
@@ -2545,6 +2522,238 @@ function stuRow(s){
   const scholarBadge=s.scholarship?`<span class="badge" style="background:#EDE9FE;color:#7C3AED;font-size:10px;"><i class="fas fa-award"></i> Scholar</span>`:'';
   return `<tr data-cid="${s.class_id||''}"><td>${admCell}</td><td style="font-weight:600;">${escapeHTML(fmtStuName(s.full_name))} ${scholarBadge}</td><td><span class="badge bn">${escapeHTML(s.class_name||'—')}</span></td><td>${typeBadge}</td><td>${s.gender||'—'}</td><td style="color:var(--brl);">${escapeHTML(s.parent_name||'—')}</td><td>${s.blocked?'<span class="badge br-b"><i class="fas fa-lock"></i> Blocked</span>':s.has_account?'<span class="badge bg"><i class="fas fa-check"></i> Active</span>':'<span class="badge bo"><i class="fas fa-user-clock"></i> Pending</span>'}</td><td style="display:flex;gap:5px;flex-wrap:wrap;"><button onclick="editStudent('${s.id}')" class="btn btn-sm btn-ghost" style="padding:5px 9px;" title="Edit"><i class="fas fa-edit"></i></button><button onclick="toggleBlock('${s.id}',${!s.blocked})" class="btn btn-sm ${s.blocked?'btn-success':'btn-danger'}" style="padding:5px 9px;" title="${s.blocked?'Unblock':'Block'}"><i class="fas fa-${s.blocked?'lock-open':'lock'}"></i></button>${delBtn}</td></tr>`;
 }
+// ═══════════════════════════════════════════
+// FIX NAME ORDER — bulk swap first-two-name-tokens for students/staff
+// Fixes cases where a first name was mistakenly entered in the surname slot.
+// full_name is stored as "Token0 Token1 [Rest...]" and displayed as
+// "Token0, Token1 Rest" (see fmtStuName). Swapping fixes: "Hope Akpan Ofon"
+// (wrong) → "Akpan Hope Ofon" (correct, displays as "Akpan, Hope Ofon").
+// ═══════════════════════════════════════════
+function _swapFirstTwoTokens(full){
+  const parts=(full||'').trim().split(/\s+/).filter(Boolean);
+  if(parts.length<2) return full;
+  const rest=parts.slice(2).join(' ');
+  return parts[1]+' '+parts[0]+(rest?' '+rest:'');
+}
+// Moves the token at `idx` to the front (becomes the surname), keeping the
+// remaining tokens in their original relative order.
+// e.g. "Hope Akpan Ofon" with idx=2 (Ofon) -> "Ofon Hope Akpan"
+function _reorderNameToken(full,idx){
+  const parts=(full||'').trim().split(/\s+/).filter(Boolean);
+  if(idx==null||isNaN(idx)||idx<0||idx>=parts.length) return full;
+  const chosen=parts[idx];
+  const rest=parts.slice(0,idx).concat(parts.slice(idx+1));
+  return chosen+(rest.length?' '+rest.join(' '):'');
+}
+// Full manual reorder: pick which token is the Surname and which is the
+// First Name; whatever tokens remain become the Middle Name(s), kept in
+// their original relative order.
+// e.g. "Abenego Christiana Okon", surnameIdx=2(Okon), firstIdx=1(Christiana)
+//      -> "Okon Christiana Abenego"
+function _reorderNameFull(full,surnameIdx,firstIdx){
+  const parts=(full||'').trim().split(/\s+/).filter(Boolean);
+  if(surnameIdx==null||isNaN(surnameIdx)||surnameIdx<0||surnameIdx>=parts.length) return full;
+  const surname=parts[surnameIdx];
+  let firstName=null;
+  const usedIdx=new Set([surnameIdx]);
+  if(firstIdx!=null&&!isNaN(firstIdx)&&firstIdx>=0&&firstIdx<parts.length&&firstIdx!==surnameIdx){
+    firstName=parts[firstIdx];
+    usedIdx.add(firstIdx);
+  }
+  const middle=parts.filter((_,i)=>!usedIdx.has(i));
+  const tail=[firstName,...middle].filter(Boolean);
+  return surname+(tail.length?' '+tail.join(' '):'');
+}
+let _fnoTab='students';
+async function renderFixNameOrder(){
+  setPage('Fix Name Order','Bulk-swap first/last name order — for names entered the wrong way round');
+  setContent(`<div class="card" style="padding:0;overflow:hidden;">
+    <div style="display:flex;border-bottom:1px solid var(--crd);">
+      <button id="fno-tab-students" onclick="_fnoSwitchTab('students')" class="btn" style="flex:1;border-radius:0;padding:13px;font-weight:700;background:var(--br);color:#fff;"><i class="fas fa-users"></i> Students (Class by Class)</button>
+      <button id="fno-tab-staff" onclick="_fnoSwitchTab('staff')" class="btn" style="flex:1;border-radius:0;padding:13px;font-weight:700;background:var(--cr);color:var(--br);"><i class="fas fa-user-tie"></i> Staff</button>
+    </div>
+    <div style="padding:16px 18px;background:#FEF3C7;font-size:12.5px;color:#92400E;border-bottom:1px solid var(--crd);">
+      <i class="fas fa-triangle-exclamation"></i> Check the rows that share the same wrong order, set <b>Surname = word #</b> / <b>First = word #</b> once in the purple box, then click <b>Apply Pattern to Checked Rows</b> — it fills every checked row's dropdowns to match. You can still fine-tune individual rows afterward. Leftover word(s) auto-fill as Middle Name(s). This cannot be auto-undone.
+    </div>
+    <div id="fno-body" style="padding:18px;"></div>
+  </div>`);
+  _fnoTab='students';
+  await _fnoRenderStudentsTab();
+}
+async function _fnoSwitchTab(tab){
+  _fnoTab=tab;
+  document.getElementById('fno-tab-students').style.background=tab==='students'?'var(--br)':'var(--cr)';
+  document.getElementById('fno-tab-students').style.color=tab==='students'?'#fff':'var(--br)';
+  document.getElementById('fno-tab-staff').style.background=tab==='staff'?'var(--br)':'var(--cr)';
+  document.getElementById('fno-tab-staff').style.color=tab==='staff'?'#fff':'var(--br)';
+  if(tab==='students') await _fnoRenderStudentsTab();
+  else await _fnoRenderStaffTab();
+}
+async function _fnoRenderStudentsTab(){
+  const body=document.getElementById('fno-body');if(!body)return;
+  body.innerHTML='<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin" style="color:var(--brl);"></i></div>';
+  const{data:classes}=await DB().from('classes').select('id,name,arm').order('name');
+  body.innerHTML=`<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;">
+    <div style="flex:1;min-width:200px;"><label class="lbl">Class</label>
+      <select id="fno-cid" class="input" onchange="_fnoLoadStudents()"><option value="">Select a class…</option>${(classes||[]).map(c=>`<option value="${c.id}">${escapeHTML(c.name)}${escapeHTML(c.arm?' '+c.arm:'')}</option>`).join('')}</select>
+    </div>
+  </div>
+  <div id="fno-stu-list" style="color:var(--brl);text-align:center;padding:20px;">Select a class to load its student list.</div>`;
+}
+async function _fnoLoadStudents(){
+  const cid=document.getElementById('fno-cid')?.value;
+  const list=document.getElementById('fno-stu-list');
+  if(!cid){list.innerHTML='Select a class to load its student list.';return;}
+  list.innerHTML='<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin" style="color:var(--brl);"></i></div>';
+  const{data:students}=await DB().from('students').select('id,full_name,admission_number').eq('class_id',cid).order('full_name');
+  if(!students?.length){list.innerHTML='<div style="text-align:center;padding:20px;color:var(--brl);">No students in this class.</div>';return;}
+  list.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--br);cursor:pointer;"><input type="checkbox" id="fno-stu-all" onchange="document.querySelectorAll('.fno-stu-cb').forEach(c=>c.checked=this.checked)" style="accent-color:var(--br);width:16px;height:16px;"> Select All</label>
+    <button onclick="_fnoApplyStudents('${cid}')" class="btn btn-primary btn-sm"><i class="fas fa-right-left"></i> Apply Selected Reorderings</button>
+  </div>
+  <div style="background:#EDE9FE;border:1px solid #DDD6FE;border-radius:11px;padding:12px 14px;margin-bottom:14px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+    <div><label class="lbl" style="color:#5B21B6;">Set pattern by word position</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span style="font-size:12px;color:#5B21B6;">Surname = word #</span>
+        <select id="fno-stu-pat-sur" class="input" style="width:70px;padding:6px;"><option value="0">1</option><option value="1">2</option><option value="2">3</option><option value="3">4</option></select>
+        <span style="font-size:12px;color:#5B21B6;">First = word #</span>
+        <select id="fno-stu-pat-fir" class="input" style="width:70px;padding:6px;"><option value="1">2</option><option value="0">1</option><option value="2">3</option><option value="3">4</option></select>
+      </div>
+    </div>
+    <button onclick="_fnoApplyPattern('stu')" class="btn btn-outline btn-sm" style="border-color:#7C3AED;color:#7C3AED;"><i class="fas fa-bolt"></i> Apply Pattern to Checked Rows</button>
+  </div>
+  <div style="overflow-x:auto;"><table class="tbl"><thead><tr><th style="width:36px;"></th><th>Adm No</th><th>Current Name</th><th>Surname</th><th>First Name</th><th>After Reorder</th></tr></thead>
+  <tbody>${students.map(s=>{
+    const parts=(s.full_name||'').trim().split(/\s+/).filter(Boolean);
+    const surIdx=0, firIdx=parts.length>1?1:null;
+    const swapped=_reorderNameFull(s.full_name,surIdx,firIdx);
+    const opts=parts.map((tok,i)=>`<option value="${i}">${escapeHTML(tok)}</option>`).join('');
+    return `<tr data-id="${s.id}" data-full="${escapeHTML(s.full_name)}">
+      <td><input type="checkbox" class="fno-stu-cb" value="${s.id}" style="accent-color:var(--br);width:16px;height:16px;"></td>
+      <td style="color:var(--brl);font-size:12px;">${escapeHTML(s.admission_number||'—')}</td>
+      <td style="font-weight:600;color:var(--br);">${escapeHTML(fmtStuName(s.full_name))}</td>
+      <td><select class="input fno-sur-sel" style="padding:6px 8px;font-size:12.5px;" onchange="_fnoUpdatePreview(this,'stu')">${parts.map((tok,i)=>`<option value="${i}"${i===surIdx?' selected':''}>${escapeHTML(tok)}</option>`).join('')}</select></td>
+      <td><select class="input fno-fir-sel" style="padding:6px 8px;font-size:12.5px;" onchange="_fnoUpdatePreview(this,'stu')">${opts.replace(`value="${firIdx}">`,`value="${firIdx}" selected>`)}</select></td>
+      <td class="fno-preview" style="font-weight:600;color:#16A34A;">${escapeHTML(fmtStuName(swapped))}</td>
+    </tr>`;
+  }).join('')}</tbody></table></div>`;
+}
+function _fnoUpdatePreview(sel,kind){
+  const tr=sel.closest('tr');
+  const full=tr.dataset.full;
+  const surIdx=parseInt(tr.querySelector('.fno-sur-sel').value,10);
+  const firIdx=parseInt(tr.querySelector('.fno-fir-sel').value,10);
+  const swapped=_reorderNameFull(full,surIdx,firIdx);
+  const previewTxt=kind==='stu'?fmtStuName(swapped):swapped;
+  tr.querySelector('.fno-preview').textContent=previewTxt;
+}
+// Applies the chosen Surname/First-name word-position pattern to every
+// checked row (skips a row if it doesn't have enough words for that pattern).
+function _fnoApplyPattern(kind){
+  const cbClass=kind==='stu'?'fno-stu-cb':'fno-staff-cb';
+  const patSur=parseInt(document.getElementById('fno-'+kind+'-pat-sur').value,10);
+  const patFir=parseInt(document.getElementById('fno-'+kind+'-pat-fir').value,10);
+  const rows=[...document.querySelectorAll('.'+cbClass+':checked')].map(cb=>cb.closest('tr'));
+  if(!rows.length){toast('Check at least one row first.','error');return;}
+  let applied=0,skipped=0;
+  rows.forEach(tr=>{
+    const surSel=tr.querySelector('.fno-sur-sel'), firSel=tr.querySelector('.fno-fir-sel');
+    const maxIdx=surSel.options.length-1;
+    if(patSur>maxIdx||patFir>maxIdx){skipped++;return;}
+    surSel.value=String(patSur);
+    firSel.value=String(patFir);
+    _fnoUpdatePreview(surSel,kind);
+    applied++;
+  });
+  toast(skipped?`✅ Pattern applied to ${applied}, ⚠️ ${skipped} skipped (not enough words).`:`✅ Pattern applied to ${applied} row(s).`);
+}
+async function _fnoApplyStudents(cid){
+  const rows=[...document.querySelectorAll('#fno-stu-list .fno-stu-cb:checked')].map(cb=>cb.closest('tr'));
+  if(!rows.length){toast('Select at least one student.','error');return;}
+  modal(`<div style="padding:26px;max-width:420px;">
+    <h3 class="hf" style="font-size:18px;color:var(--br);margin-bottom:10px;"><i class="fas fa-triangle-exclamation" style="color:#F59E0B;"></i> Confirm Name Reorder</h3>
+    <p style="font-size:13.5px;color:var(--brl);line-height:1.6;margin-bottom:18px;">This will reorder names for <b>${rows.length}</b> selected student${rows.length>1?'s':''} using the Surname and First Name you picked for each. This cannot be auto-undone.</p>
+    <div style="display:flex;gap:9px;"><button onclick="closeModal()" class="btn btn-outline" style="flex:1;justify-content:center;">Cancel</button><button onclick="_fnoConfirmStudents('${cid}')" class="btn btn-primary" style="flex:1;justify-content:center;">Confirm</button></div>
+  </div>`);
+}
+async function _fnoConfirmStudents(cid){
+  closeModal();
+  const rows=[...document.querySelectorAll('#fno-stu-list .fno-stu-cb:checked')].map(cb=>cb.closest('tr'));
+  toast(`Reordering ${rows.length} name(s)…`);
+  let ok=0,fail=0;
+  for(const row of rows){
+    const id=row.dataset.id, full=row.dataset.full;
+    const surIdx=parseInt(row.querySelector('.fno-sur-sel')?.value,10);
+    const firIdx=parseInt(row.querySelector('.fno-fir-sel')?.value,10);
+    const swapped=_reorderNameFull(full,surIdx,firIdx);
+    const{error}=await DB().from('students').update({full_name:swapped}).eq('id',id);
+    if(error)fail++;else ok++;
+  }
+  toast(fail?`✅ ${ok} reordered, ⚠️ ${fail} failed.`:`✅ ${ok} name(s) reordered successfully!`);
+  await _fnoLoadStudents();
+}
+async function _fnoRenderStaffTab(){
+  const body=document.getElementById('fno-body');if(!body)return;
+  body.innerHTML='<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin" style="color:var(--brl);"></i></div>';
+  const{data:staff}=await DB().from('profiles').select('id,full_name,role').neq('role','student').order('full_name');
+  if(!staff?.length){body.innerHTML='<div style="text-align:center;padding:20px;color:var(--brl);">No staff found.</div>';return;}
+  body.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--br);cursor:pointer;"><input type="checkbox" id="fno-staff-all" onchange="document.querySelectorAll('.fno-staff-cb').forEach(c=>c.checked=this.checked)" style="accent-color:var(--br);width:16px;height:16px;"> Select All</label>
+    <button onclick="_fnoApplyStaff()" class="btn btn-primary btn-sm"><i class="fas fa-right-left"></i> Apply Selected Reorderings</button>
+  </div>
+  <div style="background:#EDE9FE;border:1px solid #DDD6FE;border-radius:11px;padding:12px 14px;margin-bottom:14px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+    <div><label class="lbl" style="color:#5B21B6;">Set pattern by word position</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span style="font-size:12px;color:#5B21B6;">Surname = word #</span>
+        <select id="fno-staff-pat-sur" class="input" style="width:70px;padding:6px;"><option value="0">1</option><option value="1">2</option><option value="2">3</option><option value="3">4</option></select>
+        <span style="font-size:12px;color:#5B21B6;">First = word #</span>
+        <select id="fno-staff-pat-fir" class="input" style="width:70px;padding:6px;"><option value="1">2</option><option value="0">1</option><option value="2">3</option><option value="3">4</option></select>
+      </div>
+    </div>
+    <button onclick="_fnoApplyPattern('staff')" class="btn btn-outline btn-sm" style="border-color:#7C3AED;color:#7C3AED;"><i class="fas fa-bolt"></i> Apply Pattern to Checked Rows</button>
+  </div>
+  <div style="overflow-x:auto;"><table class="tbl"><thead><tr><th style="width:36px;"></th><th>Role</th><th>Current Name</th><th>Surname</th><th>First Name</th><th>After Reorder</th></tr></thead>
+  <tbody>${staff.map(s=>{
+    const parts=(s.full_name||'').trim().split(/\s+/).filter(Boolean);
+    const surIdx=0, firIdx=parts.length>1?1:null;
+    const swapped=_reorderNameFull(s.full_name,surIdx,firIdx);
+    const opts=parts.map((tok,i)=>`<option value="${i}">${escapeHTML(tok)}</option>`).join('');
+    return `<tr data-id="${s.id}" data-full="${escapeHTML(s.full_name)}">
+      <td><input type="checkbox" class="fno-staff-cb" value="${s.id}" style="accent-color:var(--br);width:16px;height:16px;"></td>
+      <td><span class="badge bn">${escapeHTML((s.role||'').replace(/_/g,' '))}</span></td>
+      <td style="font-weight:600;color:var(--br);">${escapeHTML(s.full_name)}</td>
+      <td><select class="input fno-sur-sel" style="padding:6px 8px;font-size:12.5px;" onchange="_fnoUpdatePreview(this,'staff')">${parts.map((tok,i)=>`<option value="${i}"${i===surIdx?' selected':''}>${escapeHTML(tok)}</option>`).join('')}</select></td>
+      <td><select class="input fno-fir-sel" style="padding:6px 8px;font-size:12.5px;" onchange="_fnoUpdatePreview(this,'staff')">${opts.replace(`value="${firIdx}">`,`value="${firIdx}" selected>`)}</select></td>
+      <td class="fno-preview" style="font-weight:600;color:#16A34A;">${escapeHTML(swapped)}</td>
+    </tr>`;
+  }).join('')}</tbody></table></div>`;
+}
+async function _fnoApplyStaff(){
+  const rows=[...document.querySelectorAll('#fno-body .fno-staff-cb:checked')].map(cb=>cb.closest('tr'));
+  if(!rows.length){toast('Select at least one staff member.','error');return;}
+  modal(`<div style="padding:26px;max-width:420px;">
+    <h3 class="hf" style="font-size:18px;color:var(--br);margin-bottom:10px;"><i class="fas fa-triangle-exclamation" style="color:#F59E0B;"></i> Confirm Name Reorder</h3>
+    <p style="font-size:13.5px;color:var(--brl);line-height:1.6;margin-bottom:18px;">This will reorder names for <b>${rows.length}</b> selected staff member${rows.length>1?'s':''} using the Surname and First Name you picked for each. This cannot be auto-undone.</p>
+    <div style="display:flex;gap:9px;"><button onclick="closeModal()" class="btn btn-outline" style="flex:1;justify-content:center;">Cancel</button><button onclick="_fnoConfirmStaff()" class="btn btn-primary" style="flex:1;justify-content:center;">Confirm</button></div>
+  </div>`);
+}
+async function _fnoConfirmStaff(){
+  closeModal();
+  const rows=[...document.querySelectorAll('#fno-body .fno-staff-cb:checked')].map(cb=>cb.closest('tr'));
+  toast(`Reordering ${rows.length} name(s)…`);
+  let ok=0,fail=0;
+  for(const row of rows){
+    const id=row.dataset.id, full=row.dataset.full;
+    const surIdx=parseInt(row.querySelector('.fno-sur-sel')?.value,10);
+    const firIdx=parseInt(row.querySelector('.fno-fir-sel')?.value,10);
+    const swapped=_reorderNameFull(full,surIdx,firIdx);
+    const{error}=await DB().from('profiles').update({full_name:swapped}).eq('id',id);
+    if(error)fail++;else ok++;
+  }
+  toast(fail?`✅ ${ok} reordered, ⚠️ ${fail} failed.`:`✅ ${ok} name(s) reordered successfully!`);
+  await _fnoRenderStaffTab();
+}
+
 async function deleteStudent(id, name){
   if(ROLE!=='super_admin'){toast('Only Super Admin can delete students.','error');return;}
   modal(`<div style="padding:26px;">
@@ -3844,6 +4053,8 @@ function genAffectiveTraits(avg){
   return traits.map(t=>({trait:t,rating:pick()}));
 }
 const TRAIT_LABELS={5:'Excellent',4:'Very Good',3:'Good',2:'Poor',1:'Very Poor'};
+const TRAIT_GRADE_LETTERS={5:'A',4:'B',3:'C',2:'D',1:'E'};
+const TRAIT_GRADE_COLORS={5:'#1D4ED8',4:'#047857',3:'#16A34A',2:'#B45309',1:'#EF4444'};
 
 async function renderMyResults(){
   setPage('My Results','View and download your academic results');
@@ -3922,7 +4133,13 @@ async function loadMyResults(){
   const grand=results.reduce((a,s)=>a+(parseFloat(s.total)||0),0);
   const totalObtainable=results.length*100;
   const avg=results.length?(grand/results.length).toFixed(1):'0';
-  const pos=results[0]?.position;
+  // Compute live position by ranking all class results — same method as combined PDF
+  let pos=results[0]?.position;
+  try{
+    const classRanking=await getClassResultsForRanking(UP?.class_id,term,sess);
+    const myRank=_tieRank(classRanking,UP?.id);
+    if(myRank!==null) pos=myRank;
+  }catch(e){}
   const ordinal=n=>n?n+(['th','st','nd','rd'][(n%100>10&&n%100<14)?0:(n%10<=3?n%10:0)]):'—';
   const tcComment=teacherComment(parseFloat(avg));
   const pcComment=principalComment(parseFloat(avg));
@@ -3949,7 +4166,7 @@ async function loadMyResults(){
   // Fetch real result PIN for QR — must happen here (buildResultSheet is not async)
   let qrPin='';
   try{
-    const{data:rpinRows}=await DB().from('result_pins').select('pin')
+    const{data:rpinRows}=await DB().from('result_pins_v2').select('pin')
       .eq('student_id',UP?.id||'').limit(1);
     qrPin=(rpinRows&&rpinRows.length)?rpinRows[0].pin:'';
   }catch(e){}
@@ -3992,12 +4209,13 @@ async function _getClassSigData(classId, classNameOrLevel){
 // ── Result Sheet QR URL ────────────────────────────────────────────────────
 // Single source of truth for the verification URL embedded in a result's QR
 // code, so the dashboard view, single-PDF download, and combined class PDF
-// all encode an identical link (including the PIN, when one exists).
+// all encode an identical link. The PIN alone is now sufficient — it already
+// encodes class/session/term, so the scan link just carries the PIN.
 function _resultQRUrl(student,term,sess,qrPin){
   const portalBase=window.location.origin+window.location.pathname;
-  return portalBase+'?scan=1&adm='+encodeURIComponent(student?.admission_number||'')
-    +'&term='+encodeURIComponent(term)+'&sess='+encodeURIComponent(sess)
-    +(qrPin?'&pin='+encodeURIComponent(qrPin):'');
+  if(qrPin) return portalBase+'?scan=1&pin='+encodeURIComponent(qrPin);
+  // Fallback (no PIN generated yet for this term/session) — link to the portal's Check Result tab.
+  return portalBase+'?checkresult=1';
 }
 
 // ── Result Sheet QR Generator ──────────────────────────────────────────────
@@ -4035,7 +4253,7 @@ async function _genResultQR(qrText,sizePx){
 function buildResultSheet({
   results,grand,totalObtainable,avg,pos,ordinal,
   tcComment,pcComment,genDate,pf,pfColor,
-  SS,myLabel,classCount,traits,term,sess,student,qrPin,classSigData,qrDataUrl
+  SS,myLabel,classCount,traits,term,sess,student,qrPin,classSigData,qrDataUrl,forPDF
 }){
   // ── Resolve signature data ──────────────────────────────────────────────
   const isKNP=isPupilClass(student?.class_name||'');
@@ -4051,47 +4269,65 @@ function buildResultSheet({
 
   // ── Dynamic sizing: scales from roomy (8 subjects) to compact (17+ subjects) ──
   // Target: 8–10pt readable print text. At A4/96dpi scale, 1pt ≈ 1.33px CSS.
+  // Bumped up significantly per request — the new compact 3-column affective
+  // layout (below) frees enough vertical room to afford larger academic text
+  // while still fitting a single A4 page.
   const sc = results.length || 1;
-  const fs  = sc>14?'10.5px':sc>12?'11.5px':sc>9?'12.5px':'13.5px'; // subject row font
-  const pd  = sc>14?'2px 4px':sc>12?'2.5px 5px':sc>9?'3px 6px':'4px 7px'; // subject row padding
+  const fs  = sc>14?'14px':sc>12?'15px':sc>9?'16px':'17px';           // subject row font
+  const pd  = sc>14?'3.5px 5px':sc>12?'4px 6px':sc>9?'4.5px 7px':'5.5px 8px'; // subject row padding
   const hPd = '4px 10px';                                             // header always compact
   const iPd = '4px 10px';                                             // info band padding
   const aPd = sc>12?'3px 10px':'4px 10px';                           // academic section padding
   const tdPd= sc>12?'3px 10px':'4px 10px';                           // affective/comment padding
-  const tf  = sc>12?'10px':'11px';                                    // trait font
-  const tp  = sc>14?'1.5px 4px':sc>12?'2px 4px':'2.5px 5px';        // trait padding
+  const tf  = '15px';                                                 // trait font (fixed — compact 3-col layout)
   const spPd= sc>12?'3px 10px':'4px 10px';                           // signature padding
 
   // ── Subject rows ────────────────────────────────────────────────────────
   const subjectRows=results.map((r,idx)=>{
-    const gd=grade(r.total);
+    const isAb=r.is_absent||r.grade==='AB';
+    const gd=isAb?{g:'AB',r:'Absent',c:'#EF4444'}:grade(r.total);
     const bg=idx%2===0?'#fff':'#FAF6EF';
-    return `<tr style="border-bottom:0.5px solid #DDD0BA;background:${bg};">
-      <td style="padding:${pd};font-size:${fs};font-weight:600;color:#0A2410;">${escapeHTML(r.subject_name||'—')}</td>
-      <td style="padding:${pd};text-align:center;font-size:${fs};color:#6B4F3A;">${r.ca_score??'—'}</td>
-      <td style="padding:${pd};text-align:center;font-size:${fs};color:#6B4F3A;">${r.exam_score??'—'}</td>
-      <td style="padding:${pd};text-align:center;font-size:${fs};font-weight:800;color:#0D4A15;">${r.total??'—'}</td>
-      <td style="padding:${pd};text-align:center;"><span style="background:${gd.c}22;color:${gd.c};padding:1px 5px;border-radius:4px;font-size:${fs};font-weight:800;border:0.5px solid ${gd.c}44;">${gd.g}</span></td>
-      <td style="padding:${pd};font-size:${fs};color:${gd.c};font-weight:700;">${gd.r}</td>
+    const cb='border-right:1.5px solid #1A6B2A;'; // bold column divider
+    return `<tr style="border-bottom:2px solid #1A6B2A;background:${bg};">
+      <td style="padding:${pd};${cb}font-size:${fs};font-weight:700;color:#0D4A15;">${escapeHTML(r.subject_name||'—')}</td>
+      <td style="padding:${pd};${cb}text-align:center;font-size:${fs};font-weight:700;color:#1A6B2A;">${isAb?'-':(r.ca_score??'—')}</td>
+      <td style="padding:${pd};${cb}text-align:center;font-size:${fs};font-weight:700;color:#1A6B2A;">${isAb?'-':(r.exam_score??'—')}</td>
+      <td style="padding:${pd};${cb}text-align:center;font-size:${fs};font-weight:900;color:#0D4A15;">${isAb?'AB':(r.total??'—')}</td>
+      <td style="padding:${pd};${cb}text-align:center;"><span style="background:${gd.c}22;color:${gd.c};padding:1.5px 6px;border-radius:4px;font-size:${fs};font-weight:900;border:0.75px solid ${gd.c}66;">${gd.g}</span></td>
+      <td style="padding:${pd};font-size:${fs};color:${gd.c};font-weight:800;">${gd.r}</td>
     </tr>`;
   }).join('');
 
-  // ── Affective trait rows ────────────────────────────────────────────────
-  const traitRows=traits.map((t,idx)=>{
-    const bg=idx%2===0?'#fff':'#FAF6EF';
-    return `<tr style="border-bottom:0.5px solid #DDD0BA;background:${bg};">
-      <td style="padding:${tp};font-size:${tf};color:#0A2410;font-weight:600;">${escapeHTML(t.trait)}</td>
-      ${[5,4,3,2,1].map(n=>`<td style="padding:${tp};text-align:center;font-size:11px;color:#1A6B2A;">${t.rating===n?'<span style="font-weight:900;font-size:12px;">✓</span>':''}</td>`).join('')}
-      <td style="padding:${tp};font-size:${tf};color:#7B5E47;font-style:italic;">${TRAIT_LABELS[t.rating]||''}</td>
-    </tr>`;
-  }).join('');
+
+  // ── Affective trait cells: 3 columns × 3 traits, each showing a boxed letter grade ──
+  const filteredTraits=(traits||[]).filter(t=>t.trait!=='Relationship with Staff');
+  const traitCols=[filteredTraits.slice(0,3),filteredTraits.slice(3,6),filteredTraits.slice(6,9)];
+  const traitColHTML=traitCols.map(col=>`
+    <div style="flex:1;border:2px solid #1A6B2A;border-radius:4px;overflow:hidden;">
+      ${col.map((t,i)=>{
+        const letter=TRAIT_GRADE_LETTERS[t.rating]||'—';
+        const col_=TRAIT_GRADE_COLORS[t.rating]||'#4CAF50';
+        const bg=i%2===0?'#fff':'#FAF6EF';
+        return `<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:5px 8px;background:${bg};${i<col.length-1?'border-bottom:1.5px solid #1A6B2A;':''}">
+          <span style="font-size:${tf};font-weight:700;color:#0D4A15;">${escapeHTML(t.trait)}</span>
+          <span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 3px;background:${col_}22;color:${col_};font-weight:900;font-size:15px;border-radius:4px;border:1px solid ${col_}66;">${letter}</span>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
 
   // ── Grade scale rows ────────────────────────────────────────────────────
   const gradeScale=GS.map(g=>`
     <tr style="border-bottom:0.5px solid #DDD0BA;">
-      <td style="padding:1.5px 4px;font-size:8.5px;color:#0A2410;font-weight:500;">${g.min}–${g.max}</td>
-      <td style="padding:1.5px 3px;text-align:center;"><span style="background:${g.c}20;color:${g.c};padding:1px 5px;border-radius:3px;font-size:8.5px;font-weight:800;border:0.5px solid ${g.c}40;">${g.g}</span></td>
-      <td style="padding:1.5px 4px;font-size:8.5px;color:${g.c};font-weight:700;">${g.r}</td>
+      <td style="padding:1.5px 4px;font-size:8.5px;color:#0D4A15;font-weight:600;">${g.min}–${g.max}</td>
+      <td style="padding:1.5px 3px;text-align:center;"><span style="background:${g.c}20;color:${g.c};padding:1px 5px;border-radius:3px;font-size:8.5px;font-weight:900;border:0.5px solid ${g.c}40;">${g.g}</span></td>
+      <td style="padding:1.5px 4px;font-size:8.5px;color:${g.c};font-weight:800;">${g.r}</td>
+    </tr>`).join('');
+
+  // ── Affective Trait Scale legend (letters A–E, sits just below Grading Scale) ──
+  const affectiveScale=[5,4,3,2,1].map(n=>`
+    <tr style="border-bottom:0.5px solid #DDD0BA;">
+      <td style="padding:1.5px 3px;text-align:center;"><span style="background:${TRAIT_GRADE_COLORS[n]}20;color:${TRAIT_GRADE_COLORS[n]};padding:1px 5px;border-radius:3px;font-size:8.5px;font-weight:900;border:0.5px solid ${TRAIT_GRADE_COLORS[n]}40;">${TRAIT_GRADE_LETTERS[n]}</span></td>
+      <td style="padding:1.5px 4px;font-size:8.5px;color:${TRAIT_GRADE_COLORS[n]};font-weight:800;">${TRAIT_LABELS[n]}</td>
     </tr>`).join('');
 
   // ── Logo ────────────────────────────────────────────────────────────────
@@ -4109,7 +4345,7 @@ function buildResultSheet({
   // TEMPLATE
   // ════════════════════════════════════════════════════════════════════════
   return `
-<div id="result-card" style="background:#fff;max-width:720px;font-family:'DM Sans',Arial,sans-serif;border:1px solid #C8B89A;border-radius:2px;overflow:hidden;">
+<div id="result-card" style="background:#fff;width:100%;font-family:'DM Sans',Arial,sans-serif;border:1px solid #C8B89A;border-radius:2px;overflow:hidden;">
 
   <!-- ════ GOLD TOP ACCENT ════ -->
   <div style="height:3px;background:linear-gradient(90deg,#1A6B2A 0%,#C8960C 35%,#F0C040 50%,#C8960C 65%,#1A6B2A 100%);"></div>
@@ -4190,16 +4426,16 @@ function buildResultSheet({
         ['Average',     avg+'%'],
         [studentsOrPupilsInClass, String(classCount)],
       ].map((f,i)=>`
-        <div style="padding:4px 7px;background:${i<4?'#fff':'#FAF3E8'};${i%4!==3?'border-right:1px solid #C0A882;':''}${i>=4?'border-top:1px solid #C0A882;':''}">
-          <div style="font-size:8.5px;font-weight:800;color:#4CAF50;text-transform:uppercase;letter-spacing:.08em;">${escapeHTML(f[0])}</div>
-          <div style="font-size:11.5px;font-weight:700;color:#0D4A15;margin-top:1px;line-height:1.3;">${escapeHTML(String(f[1]))}</div>
+        <div style="padding:4.5px 7px;background:${i<4?'#fff':'#FAF3E8'};${i%4!==3?'border-right:1px solid #C0A882;':''}${i>=4?'border-top:1px solid #C0A882;':''}">
+          <div style="font-size:9px;font-weight:800;color:#4CAF50;text-transform:uppercase;letter-spacing:.08em;">${escapeHTML(f[0])}</div>
+          <div style="font-size:14px;font-weight:700;color:#0D4A15;margin-top:1px;line-height:1.3;">${escapeHTML(String(f[1]))}</div>
         </div>`).join('')}
     </div>
       <div style="display:flex;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap;row-gap:3px;">
-      <div style="background:${pfColor}18;border:1.5px solid ${pfColor};border-radius:20px;padding:2.5px 14px;font-size:11px;font-weight:800;color:${pfColor};letter-spacing:.1em;">${pf}</div>
-      <div style="font-size:9.5px;color:#4CAF50;">Total Marks: <strong style="color:#0D4A15;font-size:11px;">${grand}</strong> / <strong style="color:#0D4A15;font-size:11px;">${totalObtainable}</strong> obtainable</div>
-      <div style="font-size:9.5px;color:#4CAF50;">&ensp;·&ensp;Term Ends: <strong style="color:#0D4A15;">${termEndStr}</strong></div>
-      <div style="font-size:9.5px;color:#4CAF50;">&ensp;·&ensp;Next Term Begins: <strong style="color:#0D4A15;">${nextTermStr}</strong></div>
+      <div style="background:${pfColor}18;border:1.5px solid ${pfColor};border-radius:20px;padding:3px 15px;font-size:13px;font-weight:800;color:${pfColor};letter-spacing:.1em;">${pf}</div>
+      <div style="font-size:11.5px;color:#4CAF50;">Total Marks: <strong style="color:#0D4A15;font-size:13px;">${grand}</strong> / <strong style="color:#0D4A15;font-size:13px;">${totalObtainable}</strong> obtainable</div>
+      <div style="font-size:11.5px;color:#4CAF50;">&ensp;·&ensp;Term Ends: <strong style="color:#0D4A15;">${termEndStr}</strong></div>
+      <div style="font-size:11.5px;color:#4CAF50;">&ensp;·&ensp;Next Term Begins: <strong style="color:#0D4A15;">${nextTermStr}</strong></div>
     </div>
   </div>
 
@@ -4212,20 +4448,20 @@ function buildResultSheet({
       <table style="width:100%;border-collapse:collapse;border:1px solid #C0A882;border-radius:3px;overflow:hidden;">
         <thead>
           <tr style="background:linear-gradient(135deg,#2C1A16 0%,#4A2E24 100%);">
-            <th style="padding:3px 5px;font-size:9.5px;text-align:left;color:#F5ECD7;font-weight:700;letter-spacing:.03em;">Subject</th>
-            <th style="padding:3px 4px;font-size:9px;text-align:center;color:#C8A870;font-weight:600;">CA<br><span style="font-size:7.5px;opacity:.8;">(30)</span></th>
-            <th style="padding:3px 4px;font-size:9px;text-align:center;color:#C8A870;font-weight:600;">Exam<br><span style="font-size:7.5px;opacity:.8;">(70)</span></th>
-            <th style="padding:3px 4px;font-size:9.5px;text-align:center;color:#F5ECD7;font-weight:800;">Total</th>
-            <th style="padding:3px 4px;font-size:9.5px;text-align:center;color:#F5ECD7;font-weight:800;">Grade</th>
-            <th style="padding:3px 5px;font-size:9px;text-align:left;color:#C8A870;font-weight:600;">Remark</th>
+            <th style="padding:3.5px 5px;border-right:1.5px solid #C8A870;font-size:11px;text-align:left;color:#F5ECD7;font-weight:700;letter-spacing:.03em;">Subject</th>
+            <th style="padding:3.5px 4px;border-right:1.5px solid #C8A870;font-size:10.5px;text-align:center;color:#C8A870;font-weight:600;">CA<br><span style="font-size:8.5px;opacity:.8;">(30)</span></th>
+            <th style="padding:3.5px 4px;border-right:1.5px solid #C8A870;font-size:10.5px;text-align:center;color:#C8A870;font-weight:600;">Exam<br><span style="font-size:8.5px;opacity:.8;">(70)</span></th>
+            <th style="padding:3.5px 4px;border-right:1.5px solid #C8A870;font-size:11px;text-align:center;color:#F5ECD7;font-weight:800;">Total</th>
+            <th style="padding:3.5px 4px;border-right:1.5px solid #C8A870;font-size:11px;text-align:center;color:#F5ECD7;font-weight:800;">Grade</th>
+            <th style="padding:3.5px 5px;font-size:10.5px;text-align:left;color:#C8A870;font-weight:600;">Remark</th>
           </tr>
         </thead>
         <tbody>${subjectRows}</tbody>
         <tfoot>
           <tr style="background:linear-gradient(90deg,#F5ECD7,#EDE0C4);border-top:2px solid #1A6B2A;">
-            <td colspan="3" style="padding:3px 5px;font-size:10px;font-weight:800;color:#0D4A15;letter-spacing:.03em;">Grand Total / Average</td>
-            <td style="padding:3px 4px;text-align:center;font-size:12px;font-weight:800;color:#0D4A15;">${grand}</td>
-            <td colspan="2" style="padding:3px 5px;font-size:10px;font-weight:800;color:${pfColor};">${avg}% — ${pf}</td>
+            <td colspan="3" style="padding:3.5px 5px;font-size:12.5px;font-weight:800;color:#0D4A15;letter-spacing:.03em;">Grand Total / Average</td>
+            <td style="padding:3.5px 4px;text-align:center;font-size:14px;font-weight:800;color:#0D4A15;">${grand}</td>
+            <td colspan="2" style="padding:3.5px 5px;font-size:12.5px;font-weight:800;color:${pfColor};">${avg}% — ${pf}</td>
           </tr>
         </tfoot>
       </table>
@@ -4243,9 +4479,16 @@ function buildResultSheet({
         <tbody>${gradeScale}</tbody>
       </table>
       <div style="margin-top:4px;background:#F5ECD7;border:1px solid #C0A882;border-radius:4px;padding:5px 6px;">
-        <div style="font-size:9px;font-weight:800;color:#0D4A15;margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em;">Pass / Fail Rule</div>
-        <div style="font-size:8.5px;color:#6B4F3A;margin-bottom:1px;">0–43% → <span style="color:#EF4444;font-weight:800;">FAIL</span></div>
-        <div style="font-size:8.5px;color:#6B4F3A;">44–100% → <span style="color:#16A34A;font-weight:800;">PASS</span></div>
+        <div style="font-size:9px;font-weight:900;color:#0D4A15;margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em;">Pass / Fail Rule</div>
+        <div style="font-size:8.5px;color:#6B4F3A;margin-bottom:1px;">0–43% → <span style="color:#EF4444;font-weight:900;">FAIL</span></div>
+        <div style="font-size:8.5px;color:#6B4F3A;">44–100% → <span style="color:#16A34A;font-weight:900;">PASS</span></div>
+      </div>
+      <div style="margin-top:9px;background:#F5ECD7;border:1px solid #C0A882;border-radius:4px;padding:4px 6px;position:relative;">
+        <div style="position:absolute;top:-5px;left:8px;right:8px;height:1.5px;background:repeating-linear-gradient(90deg,#B08D57 0,#B08D57 4px,transparent 4px,transparent 8px);"></div>
+        <div style="font-size:8.5px;font-weight:900;color:#0D4A15;margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em;">Affective Trait Scale</div>
+        <table style="width:100%;border-collapse:collapse;">
+          <tbody>${affectiveScale}</tbody>
+        </table>
       </div>
     </div>
 
@@ -4253,32 +4496,25 @@ function buildResultSheet({
 
   <!-- ════ AFFECTIVE DOMAIN ASSESSMENT ════ -->
   <div style="padding:${tdPd};border-bottom:1px solid #E5D9C5;background:#fff;">
-    <div style="font-size:9.5px;font-weight:800;color:#4CAF50;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px;">Affective Domain Assessment</div>
-    <table style="width:100%;border-collapse:collapse;border:1px solid #C0A882;">
-      <thead><tr style="background:linear-gradient(135deg,#2C1A16,#4A2E24);">
-        <th style="padding:2.5px 5px;font-size:9px;text-align:left;color:#F5ECD7;font-weight:700;width:28%;">Trait</th>
-        ${[5,4,3,2,1].map(n=>`<th style="padding:2.5px 4px;font-size:9px;text-align:center;color:#C8A870;font-weight:600;">${n}</th>`).join('')}
-        <th style="padding:2.5px 5px;font-size:9px;text-align:left;color:#C8A870;font-weight:600;">Rating</th>
-      </tr></thead>
-      <tbody>${traitRows}</tbody>
-    </table>
+    <div style="font-size:12px;font-weight:900;color:#1A6B2A;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">Affective Domain Assessment</div>
+    <div style="display:flex;gap:8px;">${traitColHTML}</div>
   </div>
 
   <!-- ════ COMMENTS ════ -->
   <div style="padding:${tdPd};border-bottom:1px solid #E5D9C5;display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#fff;">
     <div>
-      <div style="font-size:9px;font-weight:800;color:#4CAF50;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Class Teacher's Comment</div>
+      <div style="font-size:10.5px;font-weight:800;color:#4CAF50;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Class Teacher's Comment</div>
       <div id="tc-comment-box"
-        style="font-size:11px;color:#0D4A15;font-style:italic;background:#F5ECD7;border:1px solid #C0A882;border-left:3px solid #1A6B2A;border-radius:4px;padding:5px 8px;cursor:pointer;line-height:1.6;min-height:28px;"
+        style="font-size:13px;color:#0D4A15;font-style:italic;background:#F5ECD7;border:1px solid #C0A882;border-left:3px solid #1A6B2A;border-radius:4px;padding:5px 8px;cursor:pointer;line-height:1.6;min-height:28px;"
         title="Click to edit"
         onclick="editComment('tc-comment-box','${tcComment.replace(/'/g,"\\'")}')">
         ${tcComment}
       </div>
     </div>
     <div>
-      <div style="font-size:9px;font-weight:800;color:#4CAF50;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">${escapeHTML(htTitle)}'s Comment</div>
+      <div style="font-size:10.5px;font-weight:800;color:#4CAF50;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">${escapeHTML(htTitle)}'s Comment</div>
       <div id="pc-comment-box"
-        style="font-size:11px;color:#0D4A15;font-style:italic;background:#F5ECD7;border:1px solid #C0A882;border-left:3px solid #1A6B2A;border-radius:4px;padding:5px 8px;cursor:pointer;line-height:1.6;min-height:28px;"
+        style="font-size:13px;color:#0D4A15;font-style:italic;background:#F5ECD7;border:1px solid #C0A882;border-left:3px solid #1A6B2A;border-radius:4px;padding:5px 8px;cursor:pointer;line-height:1.6;min-height:28px;"
         title="Click to edit"
         onclick="editComment('pc-comment-box','${pcComment.replace(/'/g,"\\'")}')">
         ${pcComment}
@@ -4287,29 +4523,34 @@ function buildResultSheet({
   </div>
 
   <!-- ════ SIGNATURES ════ -->
-  <div style="padding:${spPd};border-bottom:1px solid #E5D9C5;display:grid;grid-template-columns:1fr 1fr;gap:14px;background:#fff;">
+  <div style="padding:${spPd};border-bottom:1px solid #E5D9C5;display:grid;grid-template-columns:1fr 1fr;gap:14px;background:#fff;align-items:flex-end;">
     <!-- Class Teacher -->
     <div style="text-align:center;">
       ${ctSig
-        ?`<img src="${ctSig}" style="height:28px;object-fit:contain;margin-bottom:3px;display:block;margin-left:auto;margin-right:auto;">`
-        :'<div style="height:28px;"></div>'}
+        ?`<img src="${ctSig}" style="height:42px;object-fit:contain;margin-bottom:3px;display:block;margin-left:auto;margin-right:auto;">`
+        :'<div style="height:42px;"></div>'}
       <div style="height:1px;background:linear-gradient(90deg,transparent,#1A6B2A 30%,#1A6B2A 70%,transparent);margin-bottom:4px;"></div>
-      <div style="font-size:9px;color:#4CAF50;letter-spacing:.04em;">Class Teacher's Signature &amp; Date</div>
-      <div style="font-size:11px;font-weight:700;color:#0D4A15;margin-top:2px;">${escapeHTML(ctName||'________________________')}</div>
-      ${ctTitle?`<div style="font-size:9px;color:#4CAF50;font-style:italic;margin-top:1px;">${escapeHTML(ctTitle)}</div>`:''}
+      <div style="font-size:10px;color:#4CAF50;letter-spacing:.04em;">Class Teacher's Signature &amp; Date</div>
+      <div style="font-size:13px;font-weight:700;color:#0D4A15;margin-top:2px;">${escapeHTML(ctName||'________________________')}</div>
+      ${ctTitle?`<div style="font-size:10.5px;color:#4CAF50;font-style:italic;margin-top:1px;">${escapeHTML(ctTitle)}</div>`:''}
     </div>
-    <!-- Principal / Head Teacher -->
-    <div style="text-align:center;">
-      ${htSig
-        ?`<img src="${htSig}" style="height:28px;object-fit:contain;margin-bottom:3px;display:block;margin-left:auto;margin-right:auto;">`
-        :'<div style="height:28px;"></div>'}
-      <div style="height:1px;background:linear-gradient(90deg,transparent,#1A6B2A 30%,#1A6B2A 70%,transparent);margin-bottom:4px;"></div>
-      <div style="font-size:9px;color:#4CAF50;letter-spacing:.04em;">${escapeHTML(htTitle)}'s Signature &amp; Stamp</div>
-      <div style="font-size:11px;font-weight:700;color:#0D4A15;margin-top:2px;">${escapeHTML(htName||'________________________')}</div>
-      ${htTitle?`<div style="font-size:9px;color:#4CAF50;font-style:italic;margin-top:1px;">${escapeHTML(htTitle)}</div>`:''}
-      ${htStamp
-        ?`<img src="${htStamp}" style="height:38px;object-fit:contain;margin-top:4px;display:block;margin-left:auto;margin-right:auto;">`
-        :`<div style="margin-top:4px;border:1px dashed #C0A882;border-radius:5px;height:34px;display:flex;align-items:center;justify-content:center;font-size:8px;color:#C0A882;letter-spacing:.08em;text-transform:uppercase;">Official Stamp</div>`}
+    <!-- Principal / Head Teacher — stamp placed beside the block, in the empty
+         side space, so the whole unit sits low near the footer baseline. -->
+    <div style="display:flex;align-items:flex-end;justify-content:center;gap:10px;">
+      <div style="text-align:center;flex:1;min-width:0;">
+        ${htSig
+          ?`<img src="${htSig}" style="height:42px;object-fit:contain;margin-bottom:3px;display:block;margin-left:auto;margin-right:auto;">`
+          :'<div style="height:42px;"></div>'}
+        <div style="height:1px;background:linear-gradient(90deg,transparent,#1A6B2A 30%,#1A6B2A 70%,transparent);margin-bottom:4px;"></div>
+        <div style="font-size:10px;color:#4CAF50;letter-spacing:.04em;">${escapeHTML(htTitle)}'s Signature &amp; Stamp</div>
+        <div style="font-size:13px;font-weight:700;color:#0D4A15;margin-top:2px;">${escapeHTML(htName||'________________________')}</div>
+        ${htTitle?`<div style="font-size:10.5px;color:#4CAF50;font-style:italic;margin-top:1px;">${escapeHTML(htTitle)}</div>`:''}
+      </div>
+      <div style="flex-shrink:0;">
+        ${htStamp
+          ?`<img src="${htStamp}" style="height:58px;width:58px;object-fit:contain;display:block;">`
+          :`<div style="border:1px dashed #C0A882;border-radius:50%;height:52px;width:52px;display:flex;align-items:center;justify-content:center;font-size:7px;color:#C0A882;letter-spacing:.06em;text-transform:uppercase;text-align:center;line-height:1.2;">Official<br>Stamp</div>`}
+      </div>
     </div>
   </div>
 
@@ -4323,11 +4564,11 @@ function buildResultSheet({
   <!-- Gold bottom accent -->
   <div style="height:3px;background:linear-gradient(90deg,#1A6B2A 0%,#C8960C 35%,#F0C040 50%,#C8960C 65%,#1A6B2A 100%);"></div>
 
-</div>
+</div>${forPDF?'':`
 <div style="display:flex;gap:11px;margin-top:14px;" class="no-print">
   <button onclick="window.print()" class="btn btn-primary"><i class="fas fa-print"></i> Print</button>
   <button onclick="downloadResultPDF()" class="btn btn-outline"><i class="fas fa-file-pdf"></i> Download PDF</button>
-</div>`;
+</div>`}`;
 }
 function editComment(elId, defaultTxt){
   const el=document.getElementById(elId);
@@ -4471,7 +4712,7 @@ async function generateCombinedPDF(){
       .eq('class_id',cid).eq('term',term).eq('session',sess),
     DB().from('affective_traits').select('*')
       .in('student_id',sids).eq('term',term).eq('session',sess),
-    DB().from('result_pins').select('student_id,pin')
+    DB().from('result_pins_v2').select('student_id,pin')
       .in('student_id',sids),
     getClassResultsForRanking(cid,term,sess)
   ]);
@@ -4604,6 +4845,18 @@ async function getClassResultsForRanking(classId,term,sess){
     });
     return Object.values(map).sort((a,b)=>b.total-a.total);
   }catch(e){return[];}
+}
+// Tie-aware rank lookup for a sorted-descending-by-total list.
+// Students with the same grand total share the same position; the next
+// position skips. E.g. [500,500,480] → ranks 1,1,3.
+function _tieRank(sortedList,studentId){
+  const idx=sortedList.findIndex(r=>r.student_id===studentId);
+  if(idx<0) return null;
+  const myTotal=sortedList[idx].total;
+  // Walk backwards to find the first entry with the same total
+  let firstSameIdx=idx;
+  while(firstSameIdx>0&&sortedList[firstSameIdx-1].total===myTotal) firstSameIdx--;
+  return firstSameIdx+1; // 1-based
 }
 
 // ═══════════════════════════════════════════
@@ -11255,6 +11508,108 @@ async function regenSingleCred(type,id){
   renderACExisting(type);
 }
 // ═══════════════════════════════════════════
+// MONITOR SCORES — cross-class score entry tracker
+// ═══════════════════════════════════════════
+async function renderMonitorScores(){
+  setPage('Monitor Scores','See which classes have scores entered for a session, term & subject');
+  const[classes,subjectsRaw]=await Promise.all([
+    getMyClasses(),
+    DB().from('subjects').select('id,name').order('name')
+  ]);
+  const subjects=subjectsRaw.data||[];
+  window._monClasses=classes||[];
+  setContent(`<div class="card" style="padding:22px;margin-bottom:16px;">
+    <div style="font-weight:700;font-size:14px;color:var(--br);margin-bottom:16px;"><i class="fas fa-clipboard-check"></i> Monitor Entered Scores</div>
+    <div style="display:flex;gap:11px;flex-wrap:wrap;align-items:flex-end;">
+      <div style="flex:1;min-width:150px;"><label class="lbl">Session</label>
+        <select id="mon-sess" class="input">${(ALL_SESSIONS||[]).map(s=>`<option value="${s}"${s===SCHOOL_SETTINGS.current_session?' selected':''}>${s}</option>`).join('')}</select>
+      </div>
+      <div style="flex:1;min-width:130px;"><label class="lbl">Term</label>
+        <select id="mon-term" class="input"><option${SCHOOL_SETTINGS.current_term==='1st Term'?' selected':''}>1st Term</option><option${SCHOOL_SETTINGS.current_term==='2nd Term'?' selected':''}>2nd Term</option><option${SCHOOL_SETTINGS.current_term==='3rd Term'?' selected':''}>3rd Term</option></select>
+      </div>
+      <div style="flex:1;min-width:160px;"><label class="lbl">Subject</label>
+        <select id="mon-subj" class="input"><option value="">All Subjects</option>${subjects.map(s=>`<option value="${escapeHTML(s.name)}">${escapeHTML(s.name)}</option>`).join('')}</select>
+      </div>
+      <div style="flex:1;min-width:170px;"><label class="lbl">Class</label>
+        <select id="mon-cid" class="input"><option value="">All Classes</option>${(classes||[]).map(c=>`<option value="${c.id}">${escapeHTML(c.name)}${escapeHTML(c.arm?' '+c.arm:'')}</option>`).join('')}</select>
+      </div>
+      <button onclick="loadMonitorScores()" class="btn btn-primary btn-sm"><i class="fas fa-search"></i> Check</button>
+    </div>
+  </div>
+  <div id="mon-results"></div>`);
+}
+async function loadMonitorScores(){
+  const sess=document.getElementById('mon-sess')?.value;
+  const term=document.getElementById('mon-term')?.value;
+  const subj=document.getElementById('mon-subj')?.value; // optional — blank means all subjects
+  const cid=document.getElementById('mon-cid')?.value;
+  const area=document.getElementById('mon-results');if(!area)return;
+  area.innerHTML='<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin" style="color:var(--brl);"></i></div>';
+  const classes=cid?(window._monClasses||[]).filter(c=>c.id===cid):(window._monClasses||[]);
+  if(!classes.length){area.innerHTML='<div class="card" style="padding:22px;text-align:center;color:var(--brl);">No classes available to you.</div>';return;}
+  const classIds=classes.map(c=>c.id);
+  let q=DB().from('results').select('*').in('class_id',classIds).eq('term',term).eq('session',sess);
+  if(subj)q=q.eq('subject_name',subj);
+  const[{data:scores},{data:students}]=await Promise.all([
+    q,
+    DB().from('students').select('id,class_id').in('class_id',classIds)
+  ]);
+  const stuCountByClass={};(students||[]).forEach(s=>{stuCountByClass[s.class_id]=(stuCountByClass[s.class_id]||0)+1;});
+  // group by class, then by subject within class (so "entered" per subject isn't inflated when "All Subjects" is selected)
+  const byClassSubj={};(scores||[]).forEach(r=>{
+    const k=r.class_id+'|'+(r.subject_name||'—');
+    (byClassSubj[k]=byClassSubj[k]||[]).push(r);
+  });
+  const summaryRows=[];
+  classes.forEach(c=>{
+    const total=stuCountByClass[c.id]||0;
+    const cname=`${c.name||''}${c.arm?' '+c.arm:''}`.trim();
+    const subjNames=subj?[subj]:[...new Set((scores||[]).filter(r=>r.class_id===c.id).map(r=>r.subject_name))];
+    if(subjNames.length===0){
+      if(!cid)return; // nothing entered for this class & no subjects touched — skip unless a specific class was chosen
+      summaryRows.push({cname,subj:subj||'—',total,entered:0});
+      return;
+    }
+    subjNames.forEach(sn=>{
+      const entered=(byClassSubj[c.id+'|'+sn]||[]).length;
+      summaryRows.push({cname,subj:sn,total,entered});
+    });
+  });
+  const totalEntered=(scores||[]).length;
+  const classesWithData=new Set((scores||[]).map(r=>r.class_id)).size;
+  area.innerHTML=`
+  <div class="card" style="padding:16px 20px;margin-bottom:14px;">
+    <div style="font-size:12.5px;color:var(--brl);">
+      <strong style="color:var(--br);">${subj?escapeHTML(subj):'All Subjects'}</strong> · ${term} · ${sess} — <strong style="color:var(--br);">${totalEntered}</strong> score(s) entered across <strong style="color:var(--br);">${classesWithData}</strong> of ${classes.length} class(es) you can view.
+    </div>
+  </div>
+  <div class="card" style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:16px;">
+    <table class="tbl" style="min-width:560px;"><thead><tr><th>Class</th><th>Subject</th><th>Students</th><th>Scores Entered</th><th>Status</th></tr></thead>
+      <tbody>${summaryRows.map(r=>`<tr>
+        <td style="font-weight:600;color:var(--br);white-space:nowrap;">${escapeHTML(r.cname)}</td>
+        <td style="color:var(--brl);white-space:nowrap;">${escapeHTML(r.subj)}</td>
+        <td style="text-align:center;">${r.total}</td>
+        <td style="text-align:center;font-weight:700;">${r.entered}</td>
+        <td style="white-space:nowrap;">${r.entered===0?'<span class="badge" style="background:#FEE2E2;color:#EF4444;">Not started</span>':r.entered>=r.total&&r.total>0?'<span class="badge" style="background:#DCFCE7;color:#16A34A;">Complete</span>':'<span class="badge" style="background:#FEF9C3;color:#A16207;">In progress</span>'}</td>
+      </tr>`).join('')||'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--brl);">No data for this selection.</td></tr>'}</tbody>
+    </table>
+  </div>
+  ${(scores||[]).length?`<div class="card" style="overflow:hidden;">
+    <div style="padding:12px 18px;font-weight:700;font-size:13px;color:var(--br);border-bottom:1px solid var(--crd);"><i class="fas fa-list"></i> Entered Scores — Detail</div>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="tbl" style="min-width:max-content;"><thead><tr><th>Student</th><th>Class</th><th>Subject</th><th>CA</th><th>Exam</th><th>Total</th><th>Grade</th></tr></thead>
+      <tbody>${(scores||[]).sort((a,b)=>(a.class_name||'').localeCompare(b.class_name||'')||(a.subject_name||'').localeCompare(b.subject_name||'')||(a.student_name||'').localeCompare(b.student_name||'')).map(r=>{const isAb=r.is_absent||r.grade==='AB';const gd=resolveGrade(r);return`<tr>
+        <td style="font-weight:600;color:var(--br);white-space:nowrap;">${escapeHTML(r.student_name||'—')}</td>
+        <td style="color:var(--brl);font-size:12px;white-space:nowrap;">${escapeHTML(r.class_name||'—')}</td>
+        <td style="color:var(--brl);font-size:12px;white-space:nowrap;">${escapeHTML(r.subject_name||'—')}</td>
+        <td style="text-align:center;">${isAb?'-':(r.ca_score??'—')}</td>
+        <td style="text-align:center;">${isAb?'-':(r.exam_score??'—')}</td>
+        <td style="text-align:center;font-weight:700;">${isAb?'AB':(r.total??'—')}</td>
+        <td style="text-align:center;"><span class="badge" style="background:${gd.c}20;color:${gd.c};">${gd.g}</span></td>
+      </tr>`;}).join('')}</tbody>
+    </table></div>
+  </div>`:''}`;
+}
+// ═══════════════════════════════════════════
 // SCORE SHEET PDF (SUBJECT TEACHER)
 // ═══════════════════════════════════════════
 async function renderScoreSheet(){
@@ -11302,8 +11657,9 @@ async function loadScoreSheetPreview(){
   const scoreMap={};(scores||[]).forEach(r=>scoreMap[r.student_id]=r);
   const rows=(students||[]).map((s,i)=>{
     const r=scoreMap[s.id]||{};
-    const ca=r.ca_score??'—'; const ex=r.exam_score??'—'; const tot=r.total??'—';
-    const gd=r.total!=null?grade(r.total):{g:'—',r:'—',c:'#999'};
+    const isAb=r.is_absent||r.grade==='AB';
+    const ca=isAb?'-':(r.ca_score??'—'); const ex=isAb?'-':(r.exam_score??'—'); const tot=isAb?'AB':(r.total??'—');
+    const gd=resolveGrade(r);
     return{i:i+1,name:fmtStuName(s.full_name),adm:s.admission_number,ca,ex,tot,gd};
   });
   area.innerHTML=`<div class="card" style="overflow:hidden;" id="score-sheet-card">
@@ -11362,11 +11718,13 @@ async function _buildScoreSheetPDF(cn,subj,term,sess,filled){
   const scoreMap={};(scores||[]).forEach(r=>scoreMap[r.student_id]=r);
   const rows=(students||[]).map((s,i)=>{
     const r=filled?(scoreMap[s.id]||{}):{};
-    const ca=filled&&r.ca_score!=null?String(r.ca_score):'';
-    const ex=filled&&r.exam_score!=null?String(r.exam_score):'';
-    const tot=filled&&r.total!=null?String(r.total):'';
-    const gd=filled&&r.total!=null?grade(r.total).g:'';
-    const rmk=filled&&r.total!=null?grade(r.total).r:'';
+    const isAb=filled&&(r.is_absent||r.grade==='AB');
+    const ca=isAb?'-':(filled&&r.ca_score!=null?String(r.ca_score):'');
+    const ex=isAb?'-':(filled&&r.exam_score!=null?String(r.exam_score):'');
+    const tot=isAb?'AB':(filled&&r.total!=null?String(r.total):'');
+    const gd0=filled?resolveGrade(r):{g:'',r:''};
+    const gd=filled&&(r.total!=null||isAb)?gd0.g:'';
+    const rmk=filled&&(r.total!=null||isAb)?gd0.r:'';
     return{i:i+1,name:fmtStuName(s.full_name)||'',adm:s.admission_number||'',ca,ex,tot,gd,rmk};
   });
   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
@@ -11403,18 +11761,22 @@ async function _buildScoreSheetPDF(cn,subj,term,sess,filled){
     {l:'Exam (70)',w:20,align:'center'},{l:'Total',w:17,align:'center'},
     {l:'Grade',w:15,align:'center'},{l:'Remarks',w:33,align:'left'}
   ];
-  pdf.setFillColor(...BR);pdf.rect(ML,y,CW,7,'F');
-  pdf.setTextColor(255,255,255);pdf.setFont('helvetica','bold');pdf.setFontSize(7);
-  let hx=ML;
-  cols.forEach(c=>{pdf.text(c.l,c.align==='center'?hx+c.w/2:hx+1.5,y+4.8,{align:c.align==='center'?'center':'left'});hx+=c.w;});
-  y+=7;
+  function drawSSHeader(yPos){
+    pdf.setFillColor(...BR);pdf.rect(ML,yPos,CW,7,'F');
+    pdf.setTextColor(255,255,255);pdf.setFont('helvetica','bold');pdf.setFontSize(7);
+    let hx2=ML;
+    cols.forEach(c=>{pdf.text(c.l,c.align==='center'?hx2+c.w/2:hx2+1.5,yPos+4.8,{align:c.align==='center'?'center':'left'});hx2+=c.w;});
+    return yPos+7;
+  }
+  y=drawSSHeader(y);
   // ── Rows ──
-  const ROW_H=filled?7:8.5;// slightly taller blank rows for writing
+  const ROW_H=7;// uniform row height → 32 rows/page for both blank & filled
   rows.forEach((r,idx)=>{
-    if(y+ROW_H>280){pdf.addPage();y=12;}
+    if(y+ROW_H>280){pdf.addPage();y=12;y=drawSSHeader(y);}
     pdf.setFillColor(idx%2===0?255:249,idx%2===0?255:249,idx%2===0?255:249);
     pdf.rect(ML,y,CW,ROW_H,'F');
-    pdf.setDrawColor(220,220,220);pdf.setLineWidth(0.2);pdf.line(ML,y+ROW_H,ML+CW,y+ROW_H);
+    // tick line between each student row (bold ruled line demarcating each name for handwriting/legibility)
+    pdf.setDrawColor(90,74,66);pdf.setLineWidth(0.5);pdf.line(ML,y+ROW_H,ML+CW,y+ROW_H);
     pdf.setTextColor(0,0,0);pdf.setFont('helvetica','normal');pdf.setFontSize(7.5);
     const vals=[String(r.i),r.name.length>28?r.name.substring(0,27)+'…':r.name,r.adm,r.ca,r.ex,r.tot,r.gd,r.rmk];
     let rx=ML;
@@ -11422,8 +11784,8 @@ async function _buildScoreSheetPDF(cn,subj,term,sess,filled){
       const v=vals[ci]||'';
       if(ci===1||ci===7) pdf.text(v,rx+1.5,y+ROW_H-2.2,{align:'left'});
       else pdf.text(v,rx+c.w/2,y+ROW_H-2.2,{align:'center'});
-      // draw col separator
-      pdf.setDrawColor(220,220,220);pdf.setLineWidth(0.15);if(ci>0)pdf.line(rx,y,rx,y+ROW_H);
+      // draw col separator (bold, matches row line weight)
+      pdf.setDrawColor(90,74,66);pdf.setLineWidth(0.5);if(ci>0)pdf.line(rx,y,rx,y+ROW_H);
       rx+=c.w;
     });
     y+=ROW_H;
@@ -14634,20 +14996,245 @@ async function regenCBTCode(examId){
   renderCBTAccessCodesTab();
 }
 
+// ── Class name → PIN prefix mapper ───────────────────────────────────────────
+// "Kindergarten Lower" → LK, "Kindergarten Upper" → UK, "Nursery 1" → N1,
+// "Primary 3" → P3, "JSS 2" → JS2, "SSS 1" → SS1. Falls back to first 2-3
+// alnum chars (uppercased) for any custom/unrecognised class name.
+function classNamePinPrefix(name){
+  const n=(name||'').trim().toLowerCase();
+  if(/kindergarten.*lower|lower.*kindergarten|^lk\b|k\.?g\.?\s*1\b/.test(n)) return 'LK';
+  if(/kindergarten.*upper|upper.*kindergarten|^uk\b|k\.?g\.?\s*2\b/.test(n)) return 'UK';
+  let m;
+  if((m=n.match(/nursery\s*0*(\d+)/))) return 'N'+m[1];
+  if((m=n.match(/primary\s*0*(\d+)/))) return 'P'+m[1];
+  if((m=n.match(/jss\s*0*(\d+)/))) return 'JS'+m[1];
+  if((m=n.match(/sss\s*0*(\d+)/))) return 'SS'+m[1];
+  if(/^nursery$/.test(n)) return 'N1';
+  if(/^primary$/.test(n)) return 'P1';
+  // Fallback: strip non-alnum, take first 3 chars uppercased
+  const stripped=n.replace(/[^a-z0-9]/gi,'').toUpperCase();
+  return stripped.slice(0,3)||'CLS';
+}
+// Term label → single digit used inside the PIN
+function termPinDigit(term){
+  const t=(term||'').toLowerCase();
+  if(t.startsWith('1')) return '1';
+  if(t.startsWith('2')) return '2';
+  if(t.startsWith('3')) return '3';
+  return '1';
+}
+// Build the fixed (non-editable) prefix portion of a PIN, e.g. "JS1/2025/2026/1"
+function rpBuildPrefix(className,session,term){
+  const prefix=classNamePinPrefix(className);
+  const sessNorm=(session||'').replace(/\s+/g,'');
+  return `${prefix}/${sessNorm}/${termPinDigit(term)}`;
+}
+// 6-character case-sensitive random suffix (mixed-case letters + digits)
+function rpGenSuffix(){
+  return _secureRandStr(6,'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789');
+}
+function rpFullPin(className,session,term,suffix){
+  return `${rpBuildPrefix(className,session,term)}/${suffix}`;
+}
+
 async function renderResultPinsTab(){
   let classes=[];
   if(ROLE==='head_teacher'){const{data}=await DB().from('classes').select('id,name,arm,level').in('level',['kindergarten','nursery','primary']).order('name');classes=data||[];}
   else if(ROLE==='principal'){const{data}=await DB().from('classes').select('id,name,arm,level').eq('level','secondary').order('name');classes=data||[];}
   else{const{data}=await DB().from('classes').select('id,name,arm,level').order('name');classes=data||[];}
+  window._rpClasses=classes;
+  const sessOpts=['2024/2025','2025/2026','2026/2027','2027/2028','2028/2029','2029/2030','2030/2031','2031/2032','2032/2033'];
   document.getElementById('pin-tab-content').innerHTML=`
     <div class="card" style="padding:24px;margin-bottom:20px;">
-      <div style="font-weight:700;font-size:14px;color:var(--br);margin-bottom:16px;"><i class="fas fa-filter"></i> Select Class</div>
-      <select id="rp-cid" class="input" style="max-width:300px;" onchange="loadRPStudents(this.value)">
-        <option value="">Select Class</option>
-        ${classes.map(c=>`<option value="${c.id}">${escapeHTML(c.name)}${escapeHTML(c.arm?' '+c.arm:'')}</option>`).join('')}
-      </select>
+      <div style="font-weight:700;font-size:14px;color:var(--br);margin-bottom:16px;"><i class="fas fa-filter"></i> Select Class, Term &amp; Session</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+        <div style="flex:1;min-width:170px;"><label class="lbl">Class</label>
+          <select id="rp-cid" class="input" onchange="loadRPStudents()">
+            <option value="">Select Class</option>
+            ${classes.map(c=>`<option value="${c.id}" data-name="${escapeHTML(c.name)}${escapeHTML(c.arm?' '+c.arm:'')}">${escapeHTML(c.name)}${escapeHTML(c.arm?' '+c.arm:'')}</option>`).join('')}
+          </select>
+        </div>
+        <div style="flex:1;min-width:140px;"><label class="lbl">Term</label>
+          <select id="rp-term" class="input" onchange="loadRPStudents()">
+            <option>1st Term</option><option>2nd Term</option><option>3rd Term</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:150px;"><label class="lbl">Session</label>
+          <select id="rp-sess" class="input" onchange="loadRPStudents()">
+            ${sessOpts.map(s=>`<option${s==='2025/2026'?' selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+      </div>
     </div>
     <div id="rp-area"></div>`;
+}
+
+async function loadRPStudents(){
+  const cid=document.getElementById('rp-cid')?.value;
+  const term=document.getElementById('rp-term')?.value||'1st Term';
+  const sess=document.getElementById('rp-sess')?.value||'2025/2026';
+  const area=document.getElementById('rp-area');
+  if(!area) return;
+  if(!cid){area.innerHTML='';return;}
+  area.innerHTML='<div style="text-align:center;padding:28px;"><i class="fas fa-spinner fa-spin fa-2x" style="color:var(--brl);"></i></div>';
+  const sel=document.getElementById('rp-cid');
+  const className=sel?.selectedOptions[0]?.dataset.name||'';
+  const[{data:students},{data:pins}]=await Promise.all([
+    DB().from('students').select('id,full_name,admission_number').eq('class_id',cid).order('full_name'),
+    DB().from('result_pins_v2').select('*').eq('class_id',cid).eq('term',term).eq('session',sess)
+  ]);
+  const pinMap={};(pins||[]).forEach(p=>pinMap[p.student_id]=p);
+  window._rpStudents=students||[];window._rpPinMap=pinMap;
+  window._rpCtx={cid,term,sess,className};
+  const prefix=rpBuildPrefix(className,sess,term);
+  const genCount=Object.keys(pinMap).length;
+  area.innerHTML=`
+    <div class="card" style="padding:16px 20px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:9px;">
+      <div>
+        <span style="font-weight:700;font-size:13.5px;color:var(--br);"><i class="fas fa-key"></i> ${escapeHTML(className)} — ${term}, ${sess}</span>
+        <span class="badge bn" style="margin-left:8px;">${genCount} / ${(students||[]).length} generated</span>
+        <div style="font-size:11.5px;color:var(--brl);margin-top:4px;">PIN format for this selection: <code style="background:var(--cr);padding:2px 7px;border-radius:6px;">${prefix}/XXXXXX</code> (case-sensitive)</div>
+      </div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--brl);cursor:pointer;">
+          <input type="checkbox" id="rp-select-all" onchange="rpToggleAll(this.checked)" style="accent-color:var(--br);width:15px;height:15px;"> Select All
+        </label>
+        <button onclick="rpGenerateSelected()" class="btn btn-primary btn-sm"><i class="fas fa-magic"></i> Auto-Generate PINs (Selected)</button>
+        <button onclick="rpDownloadSheet()" class="btn btn-outline btn-sm"><i class="fas fa-download"></i> Download PIN Sheet</button>
+      </div>
+    </div>
+    <div class="card" style="overflow:hidden;">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="tbl" style="min-width:max-content;">
+        <thead><tr><th></th><th>#</th><th>Student</th><th>Adm No</th><th>PIN</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="rp-tbody">${(students||[]).map((s,i)=>rpRowHTML(s,i)).join('')||'<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--brl);">No students in this class.</td></tr>'}</tbody>
+      </table></div>
+    </div>`;
+}
+
+function rpRowHTML(s,i){
+  const p=window._rpPinMap?.[s.id];
+  return `<tr data-sid="${s.id}">
+    <td><input type="checkbox" class="rp-chk" value="${s.id}" style="accent-color:var(--br);width:15px;height:15px;"></td>
+    <td style="color:var(--brl);">${i+1}</td>
+    <td style="font-weight:600;color:var(--br);">${escapeHTML(fmtStuName(s.full_name))}</td>
+    <td style="color:var(--brl);font-size:12px;">${escapeHTML(s.admission_number||'—')}</td>
+    <td id="rp-pin-${s.id}">${p?`<code style="background:var(--cr);padding:3px 9px;border-radius:7px;font-size:12px;font-weight:700;letter-spacing:.04em;">${escapeHTML(p.pin)}</code>`:'<span style="color:var(--brl);">—</span>'}</td>
+    <td id="rp-status-${s.id}">${p?'<span class="badge bg">Generated</span>':'<span class="badge bo">No PIN</span>'}</td>
+    <td id="rp-actions-${s.id}" style="display:flex;gap:5px;">${rpActionsHTML(s,p)}</td>
+  </tr>`;
+}
+function rpActionsHTML(s,p){
+  const safeName=escapeHTML((s.full_name||'').replace(/'/g,"&#39;"));
+  if(p){
+    return `<button onclick="navigator.clipboard?.writeText('${p.pin}').then(()=>toast('PIN copied!'))" class="btn btn-sm btn-ghost" title="Copy PIN"><i class="fas fa-copy"></i></button>
+      <button onclick="rpStartOverride('${s.id}','${safeName}')" class="btn btn-sm btn-outline" title="Override (edit code only)"><i class="fas fa-edit"></i></button>`;
+  }
+  return `<button onclick="rpGenerateOne('${s.id}','${safeName}')" class="btn btn-sm btn-success"><i class="fas fa-plus"></i> Generate</button>`;
+}
+
+function rpToggleAll(checked){document.querySelectorAll('.rp-chk').forEach(c=>c.checked=checked);}
+
+async function rpGenerateOne(sid,sname){
+  const ctx=window._rpCtx;if(!ctx?.cid){toast('Select a class, term and session first.','error');return;}
+  const suffix=rpGenSuffix();
+  const pin=rpFullPin(ctx.className,ctx.sess,ctx.term,suffix);
+  const student=(window._rpStudents||[]).find(s=>s.id===sid);
+  const{error}=await DB().from('result_pins_v2').upsert({
+    student_id:sid,student_name:sname,admission_number:student?.admission_number||null,
+    class_id:ctx.cid,class_name:ctx.className,term:ctx.term,session:ctx.sess,
+    pin,is_override:false,created_by:UP?.id||null,created_at:new Date().toISOString()
+  },{onConflict:'student_id,term,session'});
+  if(error){toast('Error: '+error.message,'error');return;}
+  window._rpPinMap[sid]={pin,is_override:false};
+  const pinCell=document.getElementById('rp-pin-'+sid);
+  const statusCell=document.getElementById('rp-status-'+sid);
+  const actionsCell=document.getElementById('rp-actions-'+sid);
+  if(pinCell) pinCell.innerHTML=`<code style="background:var(--cr);padding:3px 9px;border-radius:7px;font-size:12px;font-weight:700;letter-spacing:.04em;">${escapeHTML(pin)}</code>`;
+  if(statusCell) statusCell.innerHTML='<span class="badge bg">Generated</span>';
+  if(actionsCell) actionsCell.innerHTML=rpActionsHTML({id:sid,full_name:sname},{pin});
+  toast('✅ PIN generated for '+sname+'!');
+}
+
+async function rpGenerateSelected(){
+  const ctx=window._rpCtx;if(!ctx?.cid){toast('Select a class, term and session first.','error');return;}
+  const checked=[...document.querySelectorAll('.rp-chk:checked')].map(c=>c.value);
+  if(!checked.length){toast('Select at least one student (or use Select All).','error');return;}
+  const students=window._rpStudents||[];
+  const records=checked.map(sid=>{
+    const s=students.find(x=>x.id===sid);
+    const suffix=rpGenSuffix();
+    const pin=rpFullPin(ctx.className,ctx.sess,ctx.term,suffix);
+    return{student_id:sid,student_name:s?.full_name||'',admission_number:s?.admission_number||null,
+      class_id:ctx.cid,class_name:ctx.className,term:ctx.term,session:ctx.sess,
+      pin,is_override:false,created_by:UP?.id||null,created_at:new Date().toISOString()};
+  });
+  const{error}=await DB().from('result_pins_v2').upsert(records,{onConflict:'student_id,term,session'});
+  if(error){toast('Error: '+error.message,'error');return;}
+  toast(`✅ Generated PINs for ${records.length} student(s)!`);
+  loadRPStudents();
+}
+
+function rpStartOverride(sid,sname){
+  const ctx=window._rpCtx;const p=window._rpPinMap?.[sid];
+  const prefix=rpBuildPrefix(ctx.className,ctx.sess,ctx.term);
+  const currentSuffix=(p?.pin||'').split('/').pop()||'';
+  const pinCell=document.getElementById('rp-pin-'+sid);
+  if(!pinCell) return;
+  pinCell.innerHTML=`<div style="display:flex;align-items:center;gap:5px;">
+    <code style="background:var(--cr);padding:3px 7px;border-radius:7px;font-size:11.5px;color:var(--brl);">${escapeHTML(prefix)}/</code>
+    <input id="rp-override-${sid}" class="input" value="${escapeHTML(currentSuffix)}" maxlength="6" style="width:90px;padding:5px 8px;font-size:12px;font-weight:700;letter-spacing:.04em;">
+    <button onclick="rpSaveOverride('${sid}','${escapeHTML(sname.replace(/'/g,"&#39;"))}')" class="btn btn-sm btn-success" title="Save"><i class="fas fa-check"></i></button>
+    <button onclick="loadRPStudents()" class="btn btn-sm btn-ghost" title="Cancel"><i class="fas fa-times"></i></button>
+  </div>`;
+}
+
+async function rpSaveOverride(sid,sname){
+  const ctx=window._rpCtx;
+  const input=document.getElementById('rp-override-'+sid);
+  const suffix=(input?.value||'').trim();
+  if(!suffix){toast('Enter the 6-character code.','error');return;}
+  if(suffix.length!==6){toast('The code must be exactly 6 characters.','error');return;}
+  const pin=rpFullPin(ctx.className,ctx.sess,ctx.term,suffix);
+  const student=(window._rpStudents||[]).find(s=>s.id===sid);
+  const{error}=await DB().from('result_pins_v2').upsert({
+    student_id:sid,student_name:sname,admission_number:student?.admission_number||null,
+    class_id:ctx.cid,class_name:ctx.className,term:ctx.term,session:ctx.sess,
+    pin,is_override:true,created_by:UP?.id||null,created_at:new Date().toISOString()
+  },{onConflict:'student_id,term,session'});
+  if(error){toast('Error: '+error.message,'error');return;}
+  window._rpPinMap[sid]={pin,is_override:true};
+  toast('✅ PIN overridden for '+sname+'!');
+  loadRPStudents();
+}
+
+async function rpDownloadSheet(){
+  const ctx=window._rpCtx;if(!ctx?.cid){toast('Select a class, term and session first.','error');return;}
+  const students=window._rpStudents||[];
+  const pinMap=window._rpPinMap||{};
+  await window._ensureJsPDF();const{jsPDF}=window.jspdf;const SS=SCHOOL_SETTINGS;
+  const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});const W=210;
+  pdf.setFillColor(93,64,55);pdf.rect(0,0,W,26,'F');
+  pdf.setTextColor(255,255,255);pdf.setFontSize(12);pdf.setFont('helvetica','bold');
+  pdf.text(SS.school_name||'Victorious International Schools',W/2,11,{align:'center'});
+  pdf.setFontSize(7.5);pdf.setFont('helvetica','italic');pdf.text(SS.motto||'',W/2,17,{align:'center'});
+  pdf.setTextColor(0,0,0);pdf.setFontSize(11);pdf.setFont('helvetica','bold');
+  pdf.text(`Result PIN Sheet — ${ctx.className} (${ctx.term}, ${ctx.sess})`,W/2,36,{align:'center'});
+  pdf.setLineWidth(0.4);pdf.setDrawColor(93,64,55);pdf.line(14,40,W-14,40);
+  pdf.setFontSize(8.5);pdf.setFont('helvetica','normal');
+  let y=48;
+  students.forEach((s,i)=>{
+    if(y>274){pdf.addPage();y=20;}
+    const x=i%2===0?14:110;if(i%2===0&&i>0)y+=12;
+    pdf.setFont('helvetica','bold');pdf.setTextColor(93,64,55);
+    pdf.text(`${fmtStuName(s.full_name)}`,x,y);
+    pdf.setFont('helvetica','normal');pdf.setTextColor(0,0,0);
+    pdf.text(`Adm: ${s.admission_number||'—'}`,x,y+4.5);
+    pdf.setFont('helvetica','bold');pdf.setTextColor(44,24,16);
+    pdf.text(`PIN: ${pinMap[s.id]?.pin||'NOT GENERATED'}`,x,y+9);
+    pdf.setFont('helvetica','normal');pdf.setTextColor(0,0,0);
+  });
+  pdf.save(`PINSheet_${ctx.className.replace(/\s+/g,'')}_${ctx.term.replace(/\s+/g,'')}_${ctx.sess.replace(/\//g,'-')}.pdf`);
+  toast('✅ PIN sheet downloaded!');
 }
 
 async function renderAptitudeCodesTab(){
@@ -17690,95 +18277,68 @@ async function hubPublishAll(term,sess,pub){
 }
 
 // ── HUB Tab 9: Pins ───────────────────────────────────────────────────────────
+// Reuses the same Result Pins engine as the dedicated "Pins" sidebar page
+// (renderResultPinsTab / loadRPStudents / rp* functions) so there is a single
+// source of truth for PIN generation — no separate table, no drift between
+// the two entry points. This wrapper just pre-selects the Hub's current class.
 async function hubPins(){
   const area=document.getElementById('hub-tab-content');if(!area)return;
   area.innerHTML='<div style="text-align:center;padding:28px;"><i class="fas fa-spinner fa-spin" style="color:var(--brl);"></i></div>';
+  const sessOpts=['2024/2025','2025/2026','2026/2027','2027/2028','2028/2029','2029/2030','2030/2031','2031/2032','2032/2033'];
+  area.innerHTML=`
+    <div class="card" style="padding:18px 20px;margin-bottom:14px;">
+      <div style="font-weight:700;font-size:13.5px;color:var(--br);margin-bottom:12px;"><i class="fas fa-key"></i> Result Pins — ${_hubCname}</div>
+      <div style="display:flex;gap:11px;flex-wrap:wrap;align-items:flex-end;">
+        <div style="flex:1;min-width:140px;"><label class="lbl">Term</label>
+          <select id="hub-pin-term" class="input" onchange="hubLoadPins()"><option${SCHOOL_SETTINGS.current_term==='1st Term'?' selected':''}>1st Term</option><option${SCHOOL_SETTINGS.current_term==='2nd Term'?' selected':''}>2nd Term</option><option${SCHOOL_SETTINGS.current_term==='3rd Term'?' selected':''}>3rd Term</option></select>
+        </div>
+        <div style="flex:1;min-width:150px;"><label class="lbl">Session</label>
+          <select id="hub-pin-sess" class="input" onchange="hubLoadPins()">${sessOpts.map(s=>`<option${s===(SCHOOL_SETTINGS.current_session||'2025/2026')?' selected':''}>${s}</option>`).join('')}</select>
+        </div>
+      </div>
+    </div>
+    <div id="hub-pin-area"></div>`;
+  await hubLoadPins();
+}
+
+async function hubLoadPins(){
+  const term=document.getElementById('hub-pin-term')?.value||'1st Term';
+  const sess=document.getElementById('hub-pin-sess')?.value||'2025/2026';
+  const area=document.getElementById('hub-pin-area');if(!area)return;
+  area.innerHTML='<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin" style="color:var(--brl);"></i></div>';
   const[{data:students},{data:pins}]=await Promise.all([
     DB().from('students').select('id,full_name,admission_number').eq('class_id',_hubCid).order('full_name'),
-    DB().from('result_pins').select('*').eq('class_id',_hubCid)
+    DB().from('result_pins_v2').select('*').eq('class_id',_hubCid).eq('term',term).eq('session',sess)
   ]);
   const pinMap={};(pins||[]).forEach(p=>pinMap[p.student_id]=p);
-  window._hubAllStudents=students||[];window._hubPinMap=pinMap;
-  const pinCount=Object.keys(pinMap).length;
+  window._rpStudents=students||[];window._rpPinMap=pinMap;
+  window._rpCtx={cid:_hubCid,term,sess,className:_hubCname};
+  // Mirror the globals the shared rp* row-renderers expect, then render the
+  // identical table markup used on the dedicated Pins page.
+  const prefix=rpBuildPrefix(_hubCname,sess,term);
+  const genCount=Object.keys(pinMap).length;
   area.innerHTML=`
-    <div class="card" style="padding:16px 20px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:9px;">
+    <div class="card" style="padding:14px 18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:9px;">
       <div>
-        <span style="font-weight:700;font-size:13.5px;color:var(--br);"><i class="fas fa-key"></i> Result Pins — ${_hubCname}</span>
-        <span class="badge bn" style="margin-left:8px;">${pinCount} / ${(students||[]).length} generated</span>
+        <span class="badge bn">${genCount} / ${(students||[]).length} generated</span>
+        <div style="font-size:11.5px;color:var(--brl);margin-top:4px;">PIN format: <code style="background:var(--cr);padding:2px 7px;border-radius:6px;">${prefix}/XXXXXX</code> (case-sensitive)</div>
       </div>
       <div style="display:flex;gap:7px;flex-wrap:wrap;">
-        <button onclick="hubGenerateAllPins()" class="btn btn-primary btn-sm"><i class="fas fa-magic"></i> Generate All Missing</button>
-        <button onclick="hubDownloadPinSheet()" class="btn btn-outline btn-sm"><i class="fas fa-download"></i> Download Sheet</button>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--brl);cursor:pointer;">
+          <input type="checkbox" onchange="rpToggleAll(this.checked)" style="accent-color:var(--br);width:15px;height:15px;"> Select All
+        </label>
+        <button onclick="rpGenerateSelected().then(hubLoadPins)" class="btn btn-primary btn-sm"><i class="fas fa-magic"></i> Generate Selected</button>
+        <button onclick="rpDownloadSheet()" class="btn btn-outline btn-sm"><i class="fas fa-download"></i> Download Sheet</button>
       </div>
     </div>
     <div class="card" style="overflow:hidden;">
       <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="tbl" style="min-width:max-content;">
-        <thead><tr><th>#</th><th>Student</th><th>Adm No</th><th>PIN (12 chars)</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody>${(students||[]).map((s,i)=>{
-          const p=pinMap[s.id];
-          return`<tr>
-            <td style="color:var(--brl);">${i+1}</td>
-            <td style="font-weight:600;color:var(--br);">${escapeHTML(fmtStuName(s.full_name))}</td>
-            <td style="color:var(--brl);font-size:12px;">${escapeHTML(s.admission_number||'—')}</td>
-            <td><code id="hp-${s.id}" style="background:var(--cr);padding:3px 9px;border-radius:7px;font-size:12.5px;font-weight:700;letter-spacing:.1em;">${p?.pin||'—'}</code></td>
-            <td>${p?'<span class="badge bg">Generated</span>':'<span class="badge bo">No PIN</span>'}</td>
-            <td style="display:flex;gap:5px;">
-              ${p?`<button onclick="navigator.clipboard?.writeText('${p.pin}').then(()=>toast('PIN copied!'))" class="btn btn-sm btn-ghost" title="Copy PIN"><i class="fas fa-copy"></i></button>
-                   <button onclick="hubRegenPin('${s.id}','${escapeHTML(s.full_name.replace(/'/g,"&#39;"))}')" class="btn btn-sm btn-outline" title="Regenerate"><i class="fas fa-sync"></i></button>`
-                :`<button onclick="hubGenSinglePin('${s.id}','${escapeHTML(s.full_name.replace(/'/g,"&#39;"))}')" class="btn btn-sm btn-success"><i class="fas fa-plus"></i> Generate</button>`}
-            </td>
-          </tr>`;
-        }).join('')}</tbody>
+        <thead><tr><th></th><th>#</th><th>Student</th><th>Adm No</th><th>PIN</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>${(students||[]).map((s,i)=>rpRowHTML(s,i)).join('')||'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--brl);">No students in this class.</td></tr>'}</tbody>
       </table></div>
     </div>`;
 }
-function hubGenResultPin(){return _secureRandStr(12,'ABCDEFGHJKLMNPQRSTUVWXYZ23456789');}
-async function hubGenSinglePin(sid,sname){
-  const pin=hubGenResultPin();
-  const{error}=await DB().from('result_pins').upsert({student_id:sid,student_name:sname,class_id:_hubCid,class_name:_hubCname,pin,published:true},{onConflict:'student_id'});
-  if(error){toast('Error: '+error.message,'error');return;}
-  const el=document.getElementById('hp-'+sid);if(el)el.textContent=pin;
-  if(window._hubPinMap)window._hubPinMap[sid]={pin,student_id:sid};
-  toast('✅ PIN generated for '+sname+'!');
-}
-async function hubRegenPin(sid,sname){if(!confirm('Regenerate PIN for '+sname+'? Old PIN stops working.'))return;await hubGenSinglePin(sid,sname);}
-async function hubGenerateAllPins(){
-  const students=window._hubAllStudents||[];const pinMap=window._hubPinMap||{};
-  const missing=students.filter(s=>!pinMap[s.id]);
-  if(!missing.length){toast('All students already have PINs.','error');return;}
-  const records=missing.map(s=>({student_id:s.id,student_name:s.full_name,class_id:_hubCid,class_name:_hubCname,pin:hubGenResultPin(),published:true}));
-  const{error}=await DB().from('result_pins').upsert(records,{onConflict:'student_id'});
-  if(error){toast('Error: '+error.message,'error');return;}
-  toast(`✅ Generated PINs for ${records.length} student(s)!`);hubPins();
-}
-async function hubDownloadPinSheet(){
-  const students=window._hubAllStudents||[];
-  const{data:pins}=await DB().from('result_pins').select('*').eq('class_id',_hubCid);
-  const pm={};(pins||[]).forEach(p=>pm[p.student_id]=p.pin);
-  await window._ensureJsPDF();const{jsPDF}=window.jspdf;const SS=SCHOOL_SETTINGS;
-  const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});const W=210;
-  pdf.setFillColor(26,107,42);pdf.rect(0,0,W,26,'F');
-  pdf.setTextColor(255,255,255);pdf.setFontSize(12);pdf.setFont('helvetica','bold');
-  pdf.text(SS.school_name||'APEX ACADEMY GLOBAL SCHOOLS',W/2,11,{align:'center'});
-  pdf.setFontSize(7.5);pdf.setFont('helvetica','italic');pdf.text(SS.motto||'',W/2,17,{align:'center'});
-  pdf.setTextColor(0,0,0);pdf.setFontSize(11);pdf.setFont('helvetica','bold');
-  pdf.text(`Result PIN Sheet — ${_hubCname}`,W/2,36,{align:'center'});
-  pdf.setLineWidth(0.4);pdf.setDrawColor(26,107,42);pdf.line(14,40,W-14,40);
-  pdf.setFontSize(8.5);pdf.setFont('helvetica','normal');
-  let y=48;
-  students.forEach((s,i)=>{
-    if(y>274){pdf.addPage();y=20;}
-    const x=i%2===0?14:110;if(i%2===0&&i>0)y+=12;
-    pdf.setFont('helvetica','bold');pdf.setTextColor(26,107,42);
-    pdf.text(`${escapeHTML(fmtStuName(s.full_name))}`,x,y);
-    pdf.setFont('helvetica','normal');pdf.setTextColor(0,0,0);
-    pdf.text(`Adm: ${escapeHTML(s.admission_number||'—')}`,x,y+4.5);
-    pdf.setFont('helvetica','bold');pdf.setTextColor(44,24,16);
-    pdf.text(`PIN: ${pm[s.id]||'NOT GENERATED'}`,x,y+9);
-    pdf.setFont('helvetica','normal');pdf.setTextColor(0,0,0);
-  });
-  pdf.save(`PINSheet_${_hubCname}.pdf`);toast('✅ PIN sheet downloaded!');
-}
+
 
 // ── HUB Tab 10: Clearance ─────────────────────────────────────────────────────
 async function hubClearance(){
@@ -18916,6 +19476,47 @@ window.addEventListener('DOMContentLoaded',async()=>{
     const { id: _vid, type: _vtype } = window._pendingVerify;
     window._pendingVerify = null;
     showVerifyCard(_vid, _vtype);
+  }
+  // ── QR Result scan: auto-verify PIN — zero extra clicks ──────────────────
+  if(window._pendingQRScan){
+    (async()=>{
+      const _qrPin=window._pendingQRScan;
+      window._pendingQRScan=null;
+      // Full-screen "Verifying…" overlay so user sees progress, not the landing page
+      const _overlay=document.createElement('div');
+      _overlay.id='qr-verify-overlay';
+      _overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(255,255,255,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;font-family:inherit;';
+      _overlay.innerHTML='<div style="width:60px;height:60px;border-radius:50%;background:var(--br,#1A6B2A);display:flex;align-items:center;justify-content:center;"><i class="fas fa-qrcode" style="color:#fff;font-size:26px;"></i></div><div style="font-size:18px;font-weight:700;color:var(--br,#1A6B2A);">Verifying Result…</div><div style="font-size:13px;color:#888;">Please wait while we load the result</div><div style="width:200px;height:4px;background:#eee;border-radius:4px;overflow:hidden;"><div id="qr-verify-bar" style="height:100%;width:0%;background:var(--br,#1A6B2A);border-radius:4px;transition:width 1.8s ease;"></div></div>';
+      document.body.appendChild(_overlay);
+      requestAnimationFrame(()=>{ const b=document.getElementById('qr-verify-bar');if(b)b.style.width='85%'; });
+      const _removeOverlay=()=>{ const ov=document.getElementById('qr-verify-overlay');if(ov)ov.remove(); };
+      const _fail=(msg)=>{
+        _removeOverlay();
+        // Fall back to login tab with PIN pre-filled and error shown
+        loginTab(3);
+        const _pinEl=document.getElementById('pin-code');
+        if(_pinEl) _pinEl.value=_qrPin;
+        authMsg(msg||'❌ Invalid PIN. Please check and try again.');
+      };
+      try{
+        // Rate-limit check (reuse existing guard)
+        const _lockMsg=_rlCheck('pin');
+        if(_lockMsg){ _fail('❌ '+_lockMsg); return; }
+        // Call the same Edge Function pinLogin uses — no DOM dependency
+        const{data:pvResult,error:pvErr}=await window._callEdgeFn('verify-result-pin-v2',{pin:_qrPin});
+        if(pvErr||!pvResult?.valid){ _rlFail('pin'); _fail('❌ Invalid PIN. Please check and try again.'); return; }
+        _rlSuccess('pin');
+        const st=pvResult.student;
+        CU={id:st.id};
+        UP={...st,_pin_term:pvResult.term,_pin_sess:pvResult.session,_pin_payload:pvResult.payload||null};
+        ROLE='pin_viewer';
+        _removeOverlay();
+        boot(); // opens the result directly
+      }catch(e){
+        console.error('[QR auto-verify]',e);
+        _fail('❌ Verification failed. Please try again.');
+      }
+    })();
   }
   console.log('%c✅ APEX Academy Portal v2 Ready','color:#1A6B2A;font-weight:700;font-size:14px;');
 });
