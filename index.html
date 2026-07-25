@@ -437,34 +437,54 @@ body.exam-active .exam-opt,body.exam-active button,body.exam-active input,body.e
   <div style="background:#fff;border-radius:26px;box-shadow:0 20px 60px rgba(26,107,42,.14);padding:36px 32px;margin-bottom:14px;">
     <div style="text-align:center;margin-bottom:28px;">
       <div id="login-logo" style="width:56px;height:56px;background:var(--br);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 14px;overflow:hidden;">🏫</div>
-      <h2 class="hf" style="font-size:28px;color:var(--br);">Welcome Back</h2>
-      <p style="font-size:13px;color:var(--brl);margin-top:3px;">Sign in to your school portal</p>
+      <h2 class="hf" data-i18n="welcome_back" style="font-size:28px;color:var(--br);">Welcome Back</h2>
+      <p data-i18n="sign_in_sub" style="font-size:13px;color:var(--brl);margin-top:3px;">Sign in to your school portal</p>
       <p id="login-motto" style="font-size:11px;color:var(--brl);margin-top:4px;font-style:italic;">"Wisdom, Knowledge and Success"</p>
+      <select id="lang-switcher" class="input" style="margin-top:12px;max-width:170px;font-size:12px;padding:7px 10px;" onchange="setLanguage(this.value)">
+        <option value="en">🌐 English</option>
+        <option value="fr">🌐 Français</option>
+        <option value="ha">🌐 Hausa</option>
+        <option value="yo">🌐 Yorùbá</option>
+        <option value="ig">🌐 Igbo</option>
+        <option value="pcm">🌐 Pidgin</option>
+        <option value="ib">🌐 Ibibio (beta)</option>
+        <option value="efi">🌐 Efik (beta)</option>
+        <option value="es">🌐 Español</option>
+        <option value="pt">🌐 Português</option>
+        <option value="ar">🌐 العربية</option>
+        <option value="sw">🌐 Kiswahili</option>
+        <option value="zh">🌐 中文</option>
+        <option value="de">🌐 Deutsch</option>
+        <option value="it">🌐 Italiano</option>
+        <option value="tr">🌐 Türkçe</option>
+        <option value="hi">🌐 हिन्दी</option>
+        <option value="ur">🌐 اردو</option>
+      </select>
     </div>
     <div style="display:flex;gap:4px;background:var(--cr);border-radius:13px;padding:4px;margin-bottom:24px;flex-wrap:wrap;">
-      <button class="tab-btn active" id="lt0" onclick="loginTab(0)" style="font-size:11.5px;">Staff / Admin</button>
-      <button class="tab-btn" id="lt1" onclick="loginTab(1)" style="font-size:11.5px;">Student</button>
-      <button class="tab-btn" id="lt2" onclick="loginTab(2)" style="font-size:11.5px;">Parent</button>
-      <button class="tab-btn" id="lt3" onclick="loginTab(3)" style="font-size:11.5px;">PIN Check</button>
-      <button class="tab-btn" id="lt4" onclick="loginTab(4)" style="font-size:11.5px;">CBT / Aptitude</button>
+      <button class="tab-btn active" id="lt0" onclick="loginTab(0)" data-i18n="tab_staff" style="font-size:11.5px;">Staff / Admin</button>
+      <button class="tab-btn" id="lt1" onclick="loginTab(1)" data-i18n="tab_student" style="font-size:11.5px;">Student</button>
+      <button class="tab-btn" id="lt2" onclick="loginTab(2)" data-i18n="tab_parent" style="font-size:11.5px;">Parent</button>
+      <button class="tab-btn" id="lt3" onclick="loginTab(3)" data-i18n="tab_pin" style="font-size:11.5px;">PIN Check</button>
+      <button class="tab-btn" id="lt4" onclick="loginTab(4)" data-i18n="tab_cbt" style="font-size:11.5px;">CBT / Aptitude</button>
     </div>
     <div id="lf0">
-      <div style="margin-bottom:14px;"><label class="lbl">Email Address</label>
+      <div style="margin-bottom:14px;"><label class="lbl" data-i18n="email_address">Email Address</label>
         <div style="position:relative;"><i class="fas fa-envelope" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--brl);font-size:13px;"></i>
           <input id="s-email" class="input" type="email" placeholder="your@email.com" style="padding-left:38px;">
         </div></div>
-      <div style="margin-bottom:10px;"><label class="lbl">Password</label>
+      <div style="margin-bottom:10px;"><label class="lbl" data-i18n="password">Password</label>
         <div style="position:relative;"><i class="fas fa-lock" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--brl);font-size:13px;"></i>
           <input id="s-pass" class="input" type="password" placeholder="Enter password" style="padding-left:38px;padding-right:40px;">
           <button type="button" onclick="togglePwdVis('s-pass',this)" style="position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--brl);font-size:14px;padding:0;" title="Show/Hide password"><i class="fas fa-eye"></i></button>
         </div></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:var(--brl);user-select:none;">
-          <input type="checkbox" id="s-remember" style="accent-color:var(--br);width:15px;height:15px;" onchange="handleRememberMe('staff')"> Remember me
+          <input type="checkbox" id="s-remember" style="accent-color:var(--br);width:15px;height:15px;" onchange="handleRememberMe('staff')"> <span data-i18n="remember_me">Remember me</span>
         </label>
-        <button type="button" onclick="showForgotPassword('staff')" style="background:none;border:none;cursor:pointer;color:var(--br);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;padding:0;text-decoration:underline;">Forgot password?</button>
+        <button type="button" onclick="showForgotPassword('staff')" data-i18n="forgot_password" style="background:none;border:none;cursor:pointer;color:var(--br);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;padding:0;text-decoration:underline;">Forgot password?</button>
       </div>
-      <button onclick="staffLogin()" id="btn-staff-login" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;font-size:14px;border-radius:13px;">Sign In <i class="fas fa-arrow-right"></i></button>
+      <button onclick="staffLogin()" id="btn-staff-login" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;font-size:14px;border-radius:13px;"><span data-i18n="sign_in">Sign In</span> <i class="fas fa-arrow-right"></i></button>
     </div>
     <div id="lf1" style="display:none;">
       <div style="margin-bottom:14px;"><label class="lbl">Admission Number</label><input id="st-adm" class="input" type="text" placeholder="e.g. APEX/2024/001"></div>
@@ -574,10 +594,32 @@ body.exam-active .exam-opt,body.exam-active button,body.exam-active input,body.e
         </div>
       </div>
       <nav id="sidebar-nav" style="flex:1;padding:10px 8px;overflow-y:auto;"></nav>
+      <div style="padding:8px 12px;">
+        <select id="lang-switcher-app" class="input" style="font-size:11.5px;padding:6px 8px;" onchange="setLanguage(this.value)">
+          <option value="en">🌐 English</option>
+          <option value="fr">🌐 Français</option>
+          <option value="ha">🌐 Hausa</option>
+          <option value="yo">🌐 Yorùbá</option>
+          <option value="ig">🌐 Igbo</option>
+          <option value="pcm">🌐 Pidgin</option>
+          <option value="ib">🌐 Ibibio (beta)</option>
+          <option value="efi">🌐 Efik (beta)</option>
+          <option value="es">🌐 Español</option>
+          <option value="pt">🌐 Português</option>
+          <option value="ar">🌐 العربية</option>
+          <option value="sw">🌐 Kiswahili</option>
+          <option value="zh">🌐 中文</option>
+          <option value="de">🌐 Deutsch</option>
+          <option value="it">🌐 Italiano</option>
+          <option value="tr">🌐 Türkçe</option>
+          <option value="hi">🌐 हिन्दी</option>
+          <option value="ur">🌐 اردو</option>
+        </select>
+      </div>
       <div style="padding:10px 8px;border-top:1px solid var(--crd);">
         <div id="ai-chat-sidebar-btn" class="mi" onclick="openAIChat()" style="color:#7C3AED;font-weight:700;" onmouseenter="this.style.background='#EDE9FE'" onmouseleave="this.style.background=''"><i class="fas fa-robot"></i> AI Assistant</div>
-        <div class="mi" onclick="toggleDark()"><i class="fas fa-moon"></i> Dark Mode</div>
-        <div class="mi" onclick="logout()" style="color:#EF4444;" onmouseenter="this.style.background='#FEE2E2'" onmouseleave="this.style.cssText='color:#EF4444;'"><i class="fas fa-sign-out-alt"></i> Sign Out</div>
+        <div class="mi" onclick="toggleDark()"><i class="fas fa-moon"></i> <span data-i18n="dark_mode">Dark Mode</span></div>
+        <div class="mi" onclick="logout()" style="color:#EF4444;" onmouseenter="this.style.background='#FEE2E2'" onmouseleave="this.style.cssText='color:#EF4444;'"><i class="fas fa-sign-out-alt"></i> <span data-i18n="sign_out">Sign Out</span></div>
       </div>
     </div>
     <div style="flex:1;overflow-x:auto;overflow-y:auto;min-width:0;">
@@ -689,6 +731,180 @@ let SCHOOL_SETTINGS={
   admission_cbt_configs:{}
 };
 const DB = () => { if(!_sb) _sb=window.supabase.createClient(SB_URL,SB_KEY); return _sb; };
+
+// ═══════════════════════════════════════════════════════
+// I18N — MULTI-LANGUAGE SUPPORT
+// Covers: login screen, sidebar navigation, common chrome.
+// Full in-page content (results, fees, etc.) remains in the language
+// it was entered in (English by default) — extend I18N[lang] to add more.
+// ═══════════════════════════════════════════════════════
+let CURRENT_LANG = localStorage.getItem('vis_lang')||'en';
+const I18N = {
+  en:{ welcome_back:'Welcome Back', sign_in_sub:'Sign in to your school portal',
+    tab_staff:'Staff / Admin', tab_student:'Student', tab_parent:'Parent', tab_pin:'PIN Check', tab_cbt:'CBT / Aptitude',
+    email_address:'Email Address', password:'Password', remember_me:'Remember me', forgot_password:'Forgot password?',
+    sign_in:'Sign In', dark_mode:'Dark Mode', sign_out:'Sign Out',
+    'Dashboard':'Dashboard','Class Hub':'Class Hub','Students':'Students','Classes':'Classes','Subjects':'Subjects',
+    'Staff & Teachers':'Staff & Teachers','Staff':'Staff','Fix Name Order':'Fix Name Order','Assignments':'Assignments',
+    'Results':'Results','Monitor Scores':'Monitor Scores','Score Sheet':'Score Sheet','Mark Sheet':'Mark Sheet',
+    'Combined PDF':'Combined PDF','Academics':'Academics','CBT Exams':'CBT Exams','Attendance':'Attendance',
+    'Finance & Fees':'Finance & Fees','Fees & Payments':'Fees & Payments','Student Clearance':'Student Clearance',
+    'Subject Reg':'Subject Reg','Admissions':'Admissions','Aptitude Tests':'Aptitude Tests','Announcements':'Announcements',
+    'Public Posts':'Public Posts','Analytics':'Analytics','School Settings':'School Settings','Account Creation':'Account Creation',
+    'School Calendar':'School Calendar','Pins':'Pins','Parents':'Parents','Email Center':'Email Center',
+    'Fee Reminders':'Fee Reminders','Staff Payroll':'Staff Payroll','Reception':'Reception','Sign Up Profiles':'Sign Up Profiles',
+    'Fee Receipts':'Fee Receipts','Scholarship':'Scholarship','ID Cards':'ID Cards' },
+  fr:{ welcome_back:'Bon retour', sign_in_sub:'Connectez-vous à votre portail scolaire',
+    tab_staff:'Personnel / Admin', tab_student:'Élève', tab_parent:'Parent', tab_pin:'Vérifier PIN', tab_cbt:'TAO / Aptitude',
+    email_address:'Adresse e-mail', password:'Mot de passe', remember_me:'Se souvenir de moi', forgot_password:'Mot de passe oublié ?',
+    sign_in:'Se connecter', dark_mode:'Mode sombre', sign_out:'Déconnexion',
+    'Dashboard':'Tableau de bord','Class Hub':'Classes','Students':'Élèves','Classes':'Classes','Subjects':'Matières',
+    'Staff & Teachers':'Personnel & Enseignants','Staff':'Personnel','Fix Name Order':'Corriger l\'ordre des noms','Assignments':'Devoirs',
+    'Results':'Résultats','Monitor Scores':'Suivi des notes','Score Sheet':'Feuille de notes','Mark Sheet':'Relevé de notes',
+    'Combined PDF':'PDF combiné','Academics':'Pédagogie','CBT Exams':'Examens TAO','Attendance':'Présence',
+    'Finance & Fees':'Finances & Frais','Fees & Payments':'Frais & Paiements','Student Clearance':'Autorisation élève',
+    'Subject Reg':'Inscription matières','Admissions':'Admissions','Aptitude Tests':'Tests d\'aptitude','Announcements':'Annonces',
+    'Public Posts':'Publications publiques','Analytics':'Analytique','School Settings':'Paramètres de l\'école','Account Creation':'Création de compte',
+    'School Calendar':'Calendrier scolaire','Pins':'Codes PIN','Parents':'Parents','Email Center':'Centre e-mail',
+    'Fee Reminders':'Rappels de frais','Staff Payroll':'Paie du personnel','Reception':'Réception','Sign Up Profiles':'Profils d\'inscription',
+    'Fee Receipts':'Reçus de paiement','Scholarship':'Bourses','ID Cards':'Cartes d\'identité' },
+  ha:{ welcome_back:'Barka da dawowa', sign_in_sub:'Shiga zuwa fatalwar makarantar ku',
+    tab_staff:'Ma\'aikata / Admin', tab_student:'Dalibi', tab_parent:'Iyaye', tab_pin:'Duba PIN', tab_cbt:'CBT / Aptitude',
+    email_address:'Adireshin Imel', password:'Kalmar Sirri', remember_me:'Ka tuna da ni', forgot_password:'Ka manta kalmar sirri?',
+    sign_in:'Shiga', dark_mode:'Yanayin Duhu', sign_out:'Fita',
+    'Dashboard':'Dashboard','Class Hub':'Ajujuwa','Students':'Dalibai','Classes':'Ajujuwa','Subjects':'Darussa',
+    'Staff & Teachers':'Ma\'aikata & Malamai','Staff':'Ma\'aikata','Fix Name Order':'Gyara Tsarin Suna','Assignments':'Ayyuka',
+    'Results':'Sakamako','Monitor Scores':'Kula da Maki','Score Sheet':'Takardar Maki','Mark Sheet':'Takardar Alama',
+    'Combined PDF':'PDF Hade','Academics':'Ilimi','CBT Exams':'Jarrabawar CBT','Attendance':'Halarta',
+    'Finance & Fees':'Kudi & Kudade','Fees & Payments':'Kudade & Biyan Kudi','Student Clearance':'Izinin Dalibi',
+    'Subject Reg':'Rajistan Darasi','Admissions':'Shigarwa','Aptitude Tests':'Jarrabawar Basira','Announcements':'Sanarwa',
+    'Public Posts':'Sakonnin Jama\'a','Analytics':'Bincike','School Settings':'Saitunan Makaranta','Account Creation':'Kirkirar Asusun',
+    'School Calendar':'Kalandar Makaranta','Pins':'PIN','Parents':'Iyaye','Email Center':'Cibiyar Imel',
+    'Fee Reminders':'Tunatarwar Kudade','Staff Payroll':'Albashin Ma\'aikata','Reception':'Karbar Baki','Sign Up Profiles':'Rajistan Profile',
+    'Fee Receipts':'Rasidin Biyan Kudi','Scholarship':'Karatun Sadaka','ID Cards':'Katin Shaida' },
+  yo:{ welcome_back:'Ẹ káàbọ̀ padà', sign_in_sub:'Wọlé sí ẹnu-ọ̀nà ilé-ìwé rẹ',
+    tab_staff:'Òṣìṣẹ́ / Alábòójútó', tab_student:'Akẹ́kọ̀ọ́', tab_parent:'Òbí', tab_pin:'Ṣàyẹ̀wò PIN', tab_cbt:'CBT / Ìdánwò Ìjáfáfá',
+    email_address:'Àdírẹ́sì Ímeèlì', password:'Ọ̀rọ̀ àṣínà', remember_me:'Rántí mi', forgot_password:'Ṣé o gbàgbé ọ̀rọ̀ àṣínà?',
+    sign_in:'Wọlé', dark_mode:'Ipò Òkùnkùn', sign_out:'Jáde',
+    'Dashboard':'Pátákó ìdarí','Class Hub':'Ilé-ẹ̀kọ́','Students':'Akẹ́kọ̀ọ́','Classes':'Kíláàsì','Subjects':'Ẹ̀kọ́',
+    'Staff & Teachers':'Òṣìṣẹ́ àti Olùkọ́','Staff':'Òṣìṣẹ́','Fix Name Order':'Ṣàtúnṣe Ìtòlẹ́sẹ̀ Orúkọ','Assignments':'Iṣẹ́ àṣetúnṣe',
+    'Results':'Àbájáde','Monitor Scores':'Ṣàkíyèsí Àmì','Score Sheet':'Ìwé Àmì','Mark Sheet':'Ìwé Àmì Ìkẹ́kọ̀ọ́',
+    'Combined PDF':'PDF Àkópọ̀','Academics':'Ẹ̀kọ́ Ilé-ìwé','CBT Exams':'Àdánwò CBT','Attendance':'Wíwá sí Ilé-ìwé',
+    'Finance & Fees':'Owó àti Owó-ilé-ìwé','Fees & Payments':'Owó-ilé-ìwé àti Ìsanwó','Student Clearance':'Ìyọ̀nda Akẹ́kọ̀ọ́',
+    'Subject Reg':'Forúkọsílẹ̀ Ẹ̀kọ́','Admissions':'Gbígbawọlé','Aptitude Tests':'Àdánwò Ìjáfáfá','Announcements':'Ìkéde',
+    'Public Posts':'Ìfìwéránṣẹ́ Gbogbogbò','Analytics':'Ìtúpalẹ̀','School Settings':'Ètò Ilé-ìwé','Account Creation':'Ìṣẹ̀dá Àkántì',
+    'School Calendar':'Kàlẹ́ndà Ilé-ìwé','Pins':'PIN','Parents':'Òbí','Email Center':'Ibùdó Ímeèlì',
+    'Fee Reminders':'Ìránilétí Owó','Staff Payroll':'Owó-oṣù Òṣìṣẹ́','Reception':'Ìtẹ́wọ́gbà','Sign Up Profiles':'Forúkọsílẹ̀ Profaili',
+    'Fee Receipts':'Rísíìtì Owó','Scholarship':'Ìrànwọ́ Ẹ̀kọ́','ID Cards':'Káàdì Ìdánimọ̀' },
+  ig:{ welcome_back:'Nnọọ azụ', sign_in_sub:'Banye na ọnụ ụzọ ụlọ akwụkwọ gị',
+    tab_staff:'Ndị ọrụ / Onye nchịkwa', tab_student:'Nwa akwụkwọ', tab_parent:'Nne na Nna', tab_pin:'Lelee PIN', tab_cbt:'CBT / Ule Nkà',
+    email_address:'Adreesị Email', password:'Okwuntughe', remember_me:'Cheta m', forgot_password:'Ị chefuru okwuntughe?',
+    sign_in:'Banye', dark_mode:'Ọnọdụ Ojii', sign_out:'Pụọ',
+    'Dashboard':'Dashboard','Class Hub':'Klaasị','Students':'Ụmụ akwụkwọ','Classes':'Klaasị','Subjects':'Isiokwu',
+    'Staff & Teachers':'Ndị ọrụ na Ndị nkuzi','Staff':'Ndị ọrụ','Fix Name Order':'Dozie Usoro Aha','Assignments':'Ọrụ enyere',
+    'Results':'Nsonaazụ','Monitor Scores':'Nyochaa Akara','Score Sheet':'Mpempe Akara','Mark Sheet':'Mpempe Akara',
+    'Combined PDF':'PDF Ejikọtara','Academics':'Agụmakwụkwọ','CBT Exams':'Ule CBT','Attendance':'Ọbịbịa',
+    'Finance & Fees':'Ego & Ụgwọ','Fees & Payments':'Ụgwọ & Ịkwụ Ụgwọ','Student Clearance':'Ikike Nwa Akwụkwọ',
+    'Subject Reg':'Ndebanye Isiokwu','Admissions':'Nnabata','Aptitude Tests':'Ule Nkà','Announcements':'Ọkwa',
+    'Public Posts':'Ozi Ọha','Analytics':'Nyocha','School Settings':'Ntọala Ụlọ Akwụkwọ','Account Creation':'Imepụta Akaụntụ',
+    'School Calendar':'Kalenda Ụlọ Akwụkwọ','Pins':'PIN','Parents':'Nne na Nna','Email Center':'Ebe Email',
+    'Fee Reminders':'Ncheta Ụgwọ','Staff Payroll':'Ụgwọ Ọnwa Ndị Ọrụ','Reception':'Nnabata Ọbịa','Sign Up Profiles':'Ndebanye Profaịlụ',
+    'Fee Receipts':'Akwụkwọ Nnata Ụgwọ','Scholarship':'Akwụkwọ Ego Agụmakwụkwọ','ID Cards':'Kaadị Njirimara' },
+  pcm:{ welcome_back:'Welcome back', sign_in_sub:'Sign in enter your school portal',
+    tab_staff:'Staff / Admin', tab_student:'Student', tab_parent:'Parent', tab_pin:'Check PIN', tab_cbt:'CBT / Aptitude',
+    email_address:'Email Address', password:'Password', remember_me:'Remember me', forgot_password:'You forget password?',
+    sign_in:'Sign In', dark_mode:'Dark Mode', sign_out:'Comot',
+    'Dashboard':'Dashboard','Class Hub':'Class Hub','Students':'Students','Classes':'Classes','Subjects':'Subjects',
+    'Staff & Teachers':'Staff & Teachers','Staff':'Staff','Fix Name Order':'Fix Name Order','Assignments':'Assignments',
+    'Results':'Results','Monitor Scores':'Monitor Scores','Score Sheet':'Score Sheet','Mark Sheet':'Mark Sheet',
+    'Combined PDF':'Combined PDF','Academics':'Academics','CBT Exams':'CBT Exams','Attendance':'Attendance',
+    'Finance & Fees':'Money & Fees','Fees & Payments':'Fees & Payments','Student Clearance':'Student Clearance',
+    'Subject Reg':'Subject Reg','Admissions':'Admissions','Aptitude Tests':'Aptitude Tests','Announcements':'Announcements',
+    'Public Posts':'Public Posts','Analytics':'Analytics','School Settings':'School Settings','Account Creation':'Account Creation',
+    'School Calendar':'School Calendar','Pins':'Pins','Parents':'Parents','Email Center':'Email Center',
+    'Fee Reminders':'Fee Reminders','Staff Payroll':'Staff Payroll','Reception':'Reception','Sign Up Profiles':'Sign Up Profiles',
+    'Fee Receipts':'Fee Receipts','Scholarship':'Scholarship','ID Cards':'ID Cards' },
+  // ── Ibibio & Efik — BEST-EFFORT / UNVERIFIED ──────────────────────────────
+  // Sourced only from public greeting word-lists (no dictionary exists for
+  // modern tech/UI terms in these languages). Words below are attested;
+  // everything else intentionally falls back to English rather than guess.
+  // Replace with confirmed translations from a native speaker when available.
+  ib:{ welcome_back:'Amedi', sign_in_sub:'Sign in to your school portal',
+    tab_staff:'Staff / Admin', tab_student:'Student', tab_parent:'Parent', tab_pin:'PIN Check', tab_cbt:'CBT / Aptitude',
+    email_address:'Email Address', password:'Password', remember_me:'Remember me', forgot_password:'Forgot password?',
+    sign_in:'Sign In', dark_mode:'Dark Mode', sign_out:'Sign Out' },
+  efi:{ welcome_back:'Emesiere', sign_in_sub:'Sign in to your school portal',
+    tab_staff:'Staff / Admin', tab_student:'Student', tab_parent:'Parent', tab_pin:'PIN Check', tab_cbt:'CBT / Aptitude',
+    email_address:'Email Address', password:'Password', remember_me:'Remember me', forgot_password:'Forgot password?',
+    sign_in:'Sign In', dark_mode:'Dark Mode', sign_out:'Sign Out' }
+};
+// Languages available via live translation API (MyMemory — free, no
+// API key/billing needed), beyond the hand-written packs above. Add any
+// ISO code here to offer it — no manual dictionary needed. Requires a
+// Supabase Edge Function named "translate-text" (see notes below setLanguage()).
+const I18N_API_LANGS={
+  es:'Español', pt:'Português', ar:'العربية', sw:'Kiswahili', zh:'中文',
+  de:'Deutsch', it:'Italiano', tr:'Türkçe', hi:'हिन्दी', ur:'اردو'
+};
+const I18N_BETA_LANGS=new Set(['ib','efi']); // shown with an "unverified" badge
+function t(key){
+  return (I18N[CURRENT_LANG]&&I18N[CURRENT_LANG][key]) || I18N.en[key] || key;
+}
+// Fetches and caches a full translation pack for an API-driven language
+// (anything in I18N_API_LANGS) via a Supabase Edge Function proxy to
+// MyMemory (free, no API key or billing required). See setup notes at
+// bottom of this block.
+async function _ensureApiLanguagePack(lang){
+  if(I18N[lang]) return; // already have it (static or previously fetched)
+  const cacheKey='vis_i18n_'+lang;
+  const cached=localStorage.getItem(cacheKey);
+  if(cached){try{I18N[lang]=JSON.parse(cached);return;}catch(e){}}
+  const sourceKeys=Object.keys(I18N.en);
+  const sourceTexts=sourceKeys.map(k=>I18N.en[k]);
+  const{data,error}=await window._callEdgeFn('translate-text',{texts:sourceTexts,target:lang});
+  if(error||!data?.translations){
+    console.warn('Translation API unavailable for',lang,error);
+    I18N[lang]=I18N.en; // graceful fallback — English until the Edge Function is deployed
+    return;
+  }
+  const pack={};
+  sourceKeys.forEach((k,i)=>{pack[k]=data.translations[i]||I18N.en[k];});
+  I18N[lang]=pack;
+  try{localStorage.setItem(cacheKey,JSON.stringify(pack));}catch(e){}
+}
+/* ── SETUP FOR API-DRIVEN LANGUAGES (Spanish, Arabic, Portuguese, etc.) ─────
+   1. No API key or billing setup needed — MyMemory is free and open.
+   2. Deploy a Supabase Edge Function named "translate-text" that:
+        - accepts { texts: string[], target: 'es' }
+        - loops through texts, calling https://api.mymemory.translated.net/get
+          (langpair=en|target) once per string, with a small delay between
+          calls to respect MyMemory's rate limit (one string per request)
+        - returns { translations: string[] } in the same order as texts
+   3. That's it — every language in I18N_API_LANGS above will work
+      automatically and cache itself in localStorage after first use.
+   Until step 2 is deployed, API languages silently fall back to English. ── */
+async function setLanguage(lang){
+  const sel=document.querySelectorAll('#lang-switcher, #lang-switcher-app');
+  if(!I18N[lang] && I18N_API_LANGS[lang]){
+    sel.forEach(s=>{s.disabled=true;});
+    toast('Loading '+I18N_API_LANGS[lang]+' translations…','success');
+    await _ensureApiLanguagePack(lang);
+    sel.forEach(s=>{s.disabled=false;});
+  }
+  CURRENT_LANG=lang;
+  localStorage.setItem('vis_lang',lang);
+  applyTranslations();
+  if(I18N_BETA_LANGS.has(lang)){
+    toast('⚠️ This language is best-effort and not yet verified by a native speaker. Untranslated terms show in English.','error');
+  }
+}
+function applyTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    el.textContent=t(el.getAttribute('data-i18n'));
+  });
+  document.querySelectorAll('#lang-switcher, #lang-switcher-app').forEach(sel=>{sel.value=CURRENT_LANG;});
+  if(typeof buildNav==='function' && document.getElementById('sidebar-nav') && document.getElementById('app-screen')?.style.display!=='none') buildNav();
+}
 
 // ─── Session options helper (2024/2025 → 2032/2033) ──────────────────────────
 const ALL_SESSIONS=['2024/2025','2025/2026','2026/2027','2027/2028','2028/2029','2029/2030','2030/2031','2031/2032','2032/2033'];
@@ -1382,7 +1598,7 @@ async function boot(){
   _resetInactivity();
   ['mousemove','keydown','click','touchstart'].forEach(ev=>document.addEventListener(ev,_resetInactivity,{passive:true}));
   buildNav();
-  // Restrict AI Assistant to staff only — hide for students and parents
+  applyTranslations();
   const _aiBtn = document.getElementById('ai-chat-sidebar-btn');
   if(_aiBtn) _aiBtn.style.display = ['student','parent'].includes(ROLE) ? 'none' : '';
   window._lockRole(); // 🔒 ROLE is now read-only — DevTools console cannot override it
@@ -1406,6 +1622,7 @@ async function boot(){
     }
   }
   loadNotifs();
+  if(['super_admin','admin','proprietor','head_teacher','principal','bursar'].includes(ROLE)) _maybeAutoRunFeeReminders();
   // FIX 5c: Realtime subscription — bell updates instantly when a new
   // announcement or exam code is sent without any page refresh needed.
   _subscribeAnnouncements();
@@ -1470,6 +1687,7 @@ const MENUS={
     {i:'fa-laptop',l:'CBT Exams',f:'renderCBT'},
     {i:'fa-calendar-check',l:'Attendance',f:'renderAttendance'},
     {i:'fa-money-bill-wave',l:'Finance & Fees',f:'renderFinance'},
+{i:'fa-money-check-alt',l:'Staff Payroll',f:'renderPayroll'},
     {i:'fa-user-check',l:'Student Clearance',f:'renderClearance'},
     {i:'fa-clipboard-list',l:'Subject Reg',f:'renderSubjectRegistration'},
     {i:'fa-file-signature',l:'Admissions',f:'renderAdmissions'},
@@ -1483,6 +1701,8 @@ const MENUS={
     {i:'fa-key',l:'Pins',f:'renderResultPins'},
     {i:'fa-users-cog',l:'Parents',f:'renderParents'},
 {i:'fa-envelope-open-text',l:'Email Center',f:'renderEmailCenter'},
+{i:'fa-bell',l:'Fee Reminders',f:'renderFeeReminders'},
+{i:'fa-door-open',l:'Reception',f:'renderReception'},
     {i:'fa-user-plus',l:'Sign Up Profiles',f:'renderSignUpProfiles'},
     {i:'fa-receipt',l:'Fee Receipts',f:'renderFeeReceipts'},
     {i:'fa-award',l:'Scholarship',f:'renderScholarship'},
@@ -1506,6 +1726,7 @@ const MENUS={
     {i:'fa-laptop',l:'CBT Exams',f:'renderCBT'},
     {i:'fa-calendar-check',l:'Attendance',f:'renderAttendance'},
     {i:'fa-money-bill-wave',l:'Finance & Fees',f:'renderFinance'},
+{i:'fa-money-check-alt',l:'Staff Payroll',f:'renderPayroll'},
     {i:'fa-user-check',l:'Student Clearance',f:'renderClearance'},
     {i:'fa-clipboard-list',l:'Subject Reg',f:'renderSubjectRegistration'},
     {i:'fa-file-signature',l:'Admissions',f:'renderAdmissions'},
@@ -1517,6 +1738,8 @@ const MENUS={
     {i:'fa-key',l:'Pins',f:'renderResultPins'},
     {i:'fa-users-cog',l:'Parents',f:'renderParents'},
 {i:'fa-envelope-open-text',l:'Email Center',f:'renderEmailCenter'},
+{i:'fa-bell',l:'Fee Reminders',f:'renderFeeReminders'},
+{i:'fa-door-open',l:'Reception',f:'renderReception'},
     {i:'fa-user-plus',l:'Sign Up Profiles',f:'renderSignUpProfiles'},
     {i:'fa-receipt',l:'Fee Receipts',f:'renderFeeReceipts'},
     {i:'fa-award',l:'Scholarship',f:'renderScholarship'},
@@ -1538,6 +1761,7 @@ const MENUS={
     {i:'fa-laptop',l:'CBT Exams',f:'renderCBT'},
     {i:'fa-calendar-check',l:'Attendance',f:'renderAttendance'},
     {i:'fa-money-bill-wave',l:'Finance & Fees',f:'renderFinance'},
+{i:'fa-money-check-alt',l:'Staff Payroll',f:'renderPayroll'},
     {i:'fa-user-check',l:'Student Clearance',f:'renderClearance'},
     {i:'fa-clipboard-list',l:'Subject Reg',f:'renderSubjectRegistration'},
     {i:'fa-file-signature',l:'Admissions',f:'renderAdmissions'},
@@ -1549,6 +1773,8 @@ const MENUS={
     {i:'fa-key',l:'Pins',f:'renderResultPins'},
     {i:'fa-users-cog',l:'Parents',f:'renderParents'},
 {i:'fa-envelope-open-text',l:'Email Center',f:'renderEmailCenter'},
+{i:'fa-bell',l:'Fee Reminders',f:'renderFeeReminders'},
+{i:'fa-door-open',l:'Reception',f:'renderReception'},
     {i:'fa-user-plus',l:'Sign Up Profiles',f:'renderSignUpProfiles'},
     {i:'fa-receipt',l:'Fee Receipts',f:'renderFeeReceipts'},
     {i:'fa-award',l:'Scholarship',f:'renderScholarship'},
@@ -1578,6 +1804,8 @@ const MENUS={
     {i:'fa-key',l:'Pins',f:'renderResultPins'},
     {i:'fa-users-cog',l:'Parents',f:'renderParents'},
 {i:'fa-envelope-open-text',l:'Email Center',f:'renderEmailCenter'},
+{i:'fa-bell',l:'Fee Reminders',f:'renderFeeReminders'},
+{i:'fa-door-open',l:'Reception',f:'renderReception'},
     {i:'fa-user-plus',l:'Sign Up Profiles',f:'renderSignUpProfiles'},
     // NOTE: NO Finance, NO Settings, NO School Settings
   ],
@@ -1604,6 +1832,8 @@ const MENUS={
     {i:'fa-key',l:'Pins',f:'renderResultPins'},
     {i:'fa-users-cog',l:'Parents',f:'renderParents'},
 {i:'fa-envelope-open-text',l:'Email Center',f:'renderEmailCenter'},
+{i:'fa-bell',l:'Fee Reminders',f:'renderFeeReminders'},
+{i:'fa-door-open',l:'Reception',f:'renderReception'},
     {i:'fa-user-plus',l:'Sign Up Profiles',f:'renderSignUpProfiles'},
     // NOTE: NO Finance, NO Settings, NO School Settings
   ],
@@ -1636,6 +1866,7 @@ const MENUS={
   bursar:[
     {i:'fa-home',l:'Dashboard',f:'renderDashboard'},
     {i:'fa-money-bill-wave',l:'Fees & Payments',f:'renderFinance'},
+{i:'fa-money-check-alt',l:'Staff Payroll',f:'renderPayroll'},
     {i:'fa-user-check',l:'Student Clearance',f:'renderClearance'},
     {i:'fa-receipt',l:'Fee Receipts',f:'renderFeeReceipts'},
     {i:'fa-award',l:'Scholarship',f:'renderScholarship'},
@@ -1681,7 +1912,7 @@ function buildNav(){
   const dash=items.filter(m=>m.l==='Dashboard');
   const rest=items.filter(m=>m.l!=='Dashboard').sort((a,b)=>a.l.localeCompare(b.l));
   items=[...dash,...rest];
-  $('sidebar-nav').innerHTML=items.map(m=>`<div class="mi" onclick="callFn('${m.f}')" id="mi-${m.f}"><i class="fas ${m.i}"></i> ${m.l}</div>`).join('');
+  $('sidebar-nav').innerHTML=items.map(m=>`<div class="mi" onclick="callFn('${m.f}')" id="mi-${m.f}"><i class="fas ${m.i}"></i> ${escapeHTML(t(m.l))}</div>`).join('');
 }
 function callFn(name, pushState=true){
   document.querySelectorAll('.mi').forEach(e=>e.classList.remove('active'));
@@ -1949,6 +2180,9 @@ const _RT_MAP = [
   ['fee_payments',        ['loadFinanceTable','renderMyFees','renderParentFees','renderBursarDash','renderClearance','loadFeeSummary','renderFeeReceipts','loadFeeReceipts']],
   ['fee_assignments',     ['loadFinanceTable','renderFinance','renderMyFees','renderParentFees']],
   ['fee_configs',         ['renderFinance','loadFinanceTable']],
+  ['fee_reminder_log',    ['renderFeeReminders']],
+  ['payslips',            ['renderPayroll']],
+  ['visitors',            ['renderReception']],
   ['expenditures',        ['loadExpenditure','renderFinance']],
   ['cbt_submissions',     ['renderCBT','renderStudentExams','renderCBTCodeCenter']],
   ['cbt_exams',           ['renderCBT','renderStudentExams','renderCBTCodeCenter']],
@@ -1963,6 +2197,7 @@ const _RT_MAP = [
   ['school_calendar',     ['renderCalendar']],
   ['school_settings',     ['renderSchoolSettings']],
   ['academic_assignments',['renderAcademics','renderStudentAcademics','renderAssignments','loadAssignLists']],
+  ['assignment_submissions',['renderAcademics','renderStudentAcademics']],
   ['academic_notes',      ['renderAcademics','renderStudentAcademics','renderClassHub']],
   ['academic_videos',     ['renderAcademics','renderStudentAcademics']],
   ['subject_registrations',['loadClassSubjRegs','renderSubjectRegistration']],
@@ -3131,6 +3366,10 @@ function showAddStaffModal(){
           </label>`).join('')}
         </div>
       </div>
+      <div style="border-top:1px solid var(--crd);margin-top:6px;padding-top:13px;">
+        <label class="lbl" style="font-weight:700;">Payroll — Monthly Basic Salary (₦)</label>
+        <input id="af-salary" class="input" type="number" min="0" placeholder="0">
+      </div>
     </div>
     <div style="display:flex;gap:9px;margin-top:20px;">
       <button onclick="addStaff()" class="btn btn-primary" style="flex:1;justify-content:center;padding:12px;font-size:14px;"><i class="fas fa-user-plus"></i> Add Staff Member</button>
@@ -3154,7 +3393,8 @@ async function addStaff(){
     role:primaryRole,
     roles:selectedRoles,
     has_account:false,
-    profile_completed:false
+    profile_completed:false,
+    basic_salary:parseFloat($('af-salary')?.value)||0
   };
   const{error}=await DB().from('profiles').insert(payload);
   if(error){
@@ -3202,6 +3442,26 @@ async function editStaff(id){
       <div><label class="lbl">Roles (select all that apply)</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:6px;">${roleChecks}</div>
       </div>
+      <div style="border-top:1px solid var(--crd);margin-top:6px;padding-top:13px;">
+        <h4 style="margin:0 0 10px;font-size:13px;color:var(--br);"><i class="fas fa-money-check-alt"></i> Payroll</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><label class="lbl">Basic Salary (₦)</label><input id="esf-basic" class="input" type="number" min="0" value="${s.basic_salary||0}"></div>
+          <div><label class="lbl">Housing Allowance (₦)</label><input id="esf-housing" class="input" type="number" min="0" value="${s.allowance_housing||0}"></div>
+          <div><label class="lbl">Transport Allowance (₦)</label><input id="esf-transport" class="input" type="number" min="0" value="${s.allowance_transport||0}"></div>
+          <div><label class="lbl">Other Allowance (₦)</label><input id="esf-otherall" class="input" type="number" min="0" value="${s.allowance_other||0}"></div>
+          <div><label class="lbl">Tax (PAYE) (₦)</label><input id="esf-tax" class="input" type="number" min="0" value="${s.deduction_tax||0}"></div>
+          <div><label class="lbl">Pension (₦)</label><input id="esf-pension" class="input" type="number" min="0" value="${s.deduction_pension||0}"></div>
+          <div><label class="lbl">Other Deduction (₦)</label><input id="esf-otherded" class="input" type="number" min="0" value="${s.deduction_other||0}"></div>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--crd);margin-top:6px;padding-top:13px;">
+        <h4 style="margin:0 0 10px;font-size:13px;color:var(--br);"><i class="fas fa-university"></i> Bank Details (for payslip)</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><label class="lbl">Bank Name</label><input id="esf-bankname" class="input" value="${escapeHTML(s.staff_bank_name||'')}"></div>
+          <div><label class="lbl">Account Number</label><input id="esf-bankacct" class="input" value="${escapeHTML(s.staff_bank_account_number||'')}"></div>
+          <div style="grid-column:1/-1;"><label class="lbl">Account Name</label><input id="esf-bankaccname" class="input" value="${escapeHTML(s.staff_bank_account_name||'')}"></div>
+        </div>
+      </div>
     </div>
     <button onclick="saveStaff('${id}')" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:18px;padding:12px;"><i class="fas fa-save"></i> Save</button>
   </div>`);
@@ -3218,7 +3478,17 @@ async function saveStaff(id){
     staff_code:newCode,
     phone:$('esf-phone').value,
     role:primaryRole,        // keep single-role column in sync
-    roles:selectedRoles      // new array column
+    roles:selectedRoles,     // new array column
+    basic_salary:parseFloat($('esf-basic')?.value)||0,
+    allowance_housing:parseFloat($('esf-housing')?.value)||0,
+    allowance_transport:parseFloat($('esf-transport')?.value)||0,
+    allowance_other:parseFloat($('esf-otherall')?.value)||0,
+    deduction_tax:parseFloat($('esf-tax')?.value)||0,
+    deduction_pension:parseFloat($('esf-pension')?.value)||0,
+    deduction_other:parseFloat($('esf-otherded')?.value)||0,
+    staff_bank_name:$('esf-bankname')?.value||null,
+    staff_bank_account_number:$('esf-bankacct')?.value||null,
+    staff_bank_account_name:$('esf-bankaccname')?.value||null
   }).eq('id',id);
   if(error){toast('Error: '+error.message,'error');return;}
   // If staff_code (password) changed and staff has Auth account — sync to Auth
@@ -12923,6 +13193,517 @@ async function flushEmailQueue(){
 window.addEventListener('online',()=>flushEmailQueue());
 
 // ═══════════════════════════════════════════════════════
+// AUTOMATED FEE REMINDERS
+// Requires table (create once in Supabase SQL editor):
+//   CREATE TABLE IF NOT EXISTS fee_reminder_log (
+//     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+//     student_id uuid, student_name text, fee_payment_id uuid,
+//     recipient_email text, recipient_name text, balance numeric,
+//     channel text DEFAULT 'email', status text DEFAULT 'sent',
+//     error_message text, sent_at timestamptz DEFAULT now()
+//   );
+// ═══════════════════════════════════════════════════════
+function _feeReminderSettings(){
+  const s=SCHOOL_SETTINGS||{};
+  return{
+    enabled: s.fee_reminders_enabled!==false,
+    intervalDays: parseInt(s.fee_reminder_interval_days)||7,
+    minBalance: parseFloat(s.fee_reminder_min_balance)||0
+  };
+}
+async function _feeReminderCandidates(){
+  const{data:unpaid}=await DB().from('fee_payments')
+    .select('id,student_id,fee_type,amount,amount_paid,status,session,term,class_name')
+    .in('status',['pending','partial']);
+  const rows=(unpaid||[]).map(p=>{
+    const due=parseFloat(p.amount)||0,paid=parseFloat(p.amount_paid)||0;
+    return{...p,balance:Math.max(0,due-paid)};
+  }).filter(p=>p.balance>0);
+  if(!rows.length) return[];
+  const studentIds=[...new Set(rows.map(r=>r.student_id).filter(Boolean))];
+  const{data:students}=await DB().from('students').select('id,full_name,email,class_name').in('id',studentIds);
+  const stuMap={}; (students||[]).forEach(s=>stuMap[s.id]=s);
+  const{data:parents}=await DB().from('parents').select('id,full_name,email,student_ids');
+  // group balances by student
+  const byStudent={};
+  rows.forEach(r=>{
+    if(!byStudent[r.student_id]) byStudent[r.student_id]={student_id:r.student_id,items:[],total:0};
+    byStudent[r.student_id].items.push(r);
+    byStudent[r.student_id].total+=r.balance;
+  });
+  const out=[];
+  Object.values(byStudent).forEach(g=>{
+    const stu=stuMap[g.student_id]; if(!stu)return;
+    const parent=(parents||[]).find(p=>(p.student_ids||[]).includes(g.student_id)||(typeof p.student_ids==='string'&&p.student_ids.includes(g.student_id)));
+    const toEmail=parent?.email||stu.email;
+    const toName=parent?.full_name||stu.full_name;
+    if(!toEmail)return;
+    out.push({student_id:g.student_id,student_name:stu.full_name,class_name:stu.class_name,
+      toEmail,toName,balance:g.total,items:g.items});
+  });
+  return out;
+}
+async function runFeeReminders(manual=false){
+  const cfg=_feeReminderSettings();
+  if(!cfg.enabled && !manual) return{sent:0,skipped:0};
+  const candidates=(await _feeReminderCandidates()).filter(c=>c.balance>=cfg.minBalance);
+  let sent=0,skipped=0;
+  for(const c of candidates){
+    if(!manual){
+      const{data:last}=await DB().from('fee_reminder_log').select('sent_at')
+        .eq('student_id',c.student_id).order('sent_at',{ascending:false}).limit(1);
+      if(last?.length){
+        const days=(Date.now()-new Date(last[0].sent_at).getTime())/86400000;
+        if(days<cfg.intervalDays){skipped++;continue;}
+      }
+    }
+    const schoolName=SCHOOL_SETTINGS?.school_name||'the school';
+    const subject=`Outstanding Fee Balance — ${c.student_name}`;
+    const bodyHtml=`Dear ${escapeHTML(c.toName)},<br><br>This is a reminder that <strong>${escapeHTML(c.student_name)}</strong> (${escapeHTML(c.class_name||'')}) has an outstanding fee balance of <strong>${fmtMoney(c.balance)}</strong>.<br><br>Kindly settle this balance at your earliest convenience to avoid disruption to your ward's academic activities.<br><br>Thank you,<br>${escapeHTML(schoolName)}`;
+    try{
+      await sendEmailDelivery({toEmail:c.toEmail,toName:c.toName,subject,bodyHtml});
+      await DB().from('fee_reminder_log').insert({student_id:c.student_id,student_name:c.student_name,
+        recipient_email:c.toEmail,recipient_name:c.toName,balance:c.balance,status:'sent'});
+      sent++;
+    }catch(e){
+      await DB().from('fee_reminder_log').insert({student_id:c.student_id,student_name:c.student_name,
+        recipient_email:c.toEmail,recipient_name:c.toName,balance:c.balance,status:'failed',error_message:String(e)});
+      skipped++;
+    }
+  }
+  return{sent,skipped,total:candidates.length};
+}
+async function _maybeAutoRunFeeReminders(){
+  try{
+    const cfg=_feeReminderSettings();
+    if(!cfg.enabled)return;
+    const key='vis_last_fee_reminder_run';
+    const last=localStorage.getItem(key);
+    if(last && (Date.now()-parseInt(last))<86400000) return; // once per day per device
+    localStorage.setItem(key,String(Date.now()));
+    await runFeeReminders(false);
+  }catch(e){}
+}
+async function renderFeeReminders(){
+  setPage('Fee Reminders','Automated outstanding-balance reminders to parents',
+    `<button class="btn btn-primary" onclick="_sendFeeRemindersNow()"><i class="fas fa-paper-plane"></i> Send Reminders Now</button>`);
+  const cfg=_feeReminderSettings();
+  const candidates=await _feeReminderCandidates();
+  const{data:log}=await DB().from('fee_reminder_log').select('*').order('sent_at',{ascending:false}).limit(50);
+  setContent(`
+    <div class="card" style="margin-bottom:16px;">
+      <h3 style="margin:0 0 12px;">Reminder Settings</h3>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:end;">
+        <div><label class="lbl">Enabled</label><br>
+          <select id="fr-enabled" class="input" style="width:140px;">
+            <option value="true" ${cfg.enabled?'selected':''}>Yes</option>
+            <option value="false" ${!cfg.enabled?'selected':''}>No</option>
+          </select>
+        </div>
+        <div><label class="lbl">Remind every (days)</label><br>
+          <input id="fr-interval" class="input" type="number" min="1" style="width:120px;" value="${cfg.intervalDays}">
+        </div>
+        <div><label class="lbl">Minimum balance (₦)</label><br>
+          <input id="fr-minbal" class="input" type="number" min="0" style="width:140px;" value="${cfg.minBalance}">
+        </div>
+        <button class="btn btn-secondary" onclick="_saveFeeReminderSettings()"><i class="fas fa-save"></i> Save</button>
+      </div>
+      <p style="font-size:12px;color:var(--brl);margin-top:10px;">When enabled, reminders auto-check once per day (on admin login) and email any parent/student whose balance hasn't been reminded within the interval above.</p>
+    </div>
+    <div class="card" style="margin-bottom:16px;">
+      <h3 style="margin:0 0 12px;">Currently Owing (${candidates.length})</h3>
+      <div style="overflow-x:auto;"><table class="tbl"><thead><tr><th>Student</th><th>Class</th><th>Balance</th><th>Recipient</th></tr></thead><tbody>
+        ${candidates.length?candidates.map(c=>`<tr><td>${escapeHTML(c.student_name)}</td><td>${escapeHTML(c.class_name||'—')}</td><td style="color:#EF4444;font-weight:700;">${fmtMoney(c.balance)}</td><td>${escapeHTML(c.toEmail)}</td></tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--brl);">No outstanding balances with a reachable parent/student email.</td></tr>'}
+      </tbody></table></div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 12px;">Recent Reminder Log</h3>
+      <div style="overflow-x:auto;"><table class="tbl"><thead><tr><th>Sent</th><th>Student</th><th>Recipient</th><th>Balance</th><th>Status</th></tr></thead><tbody>
+        ${(log||[]).length?(log||[]).map(l=>`<tr><td>${new Date(l.sent_at).toLocaleString()}</td><td>${escapeHTML(l.student_name||'')}</td><td>${escapeHTML(l.recipient_email||'')}</td><td>${fmtMoney(l.balance||0)}</td><td>${l.status==='sent'?'<span style="color:#16A34A;">Sent</span>':'<span style="color:#EF4444;">Failed</span>'}</td></tr>`).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--brl);">No reminders sent yet.</td></tr>'}
+      </tbody></table></div>
+    </div>
+  `);
+}
+async function _saveFeeReminderSettings(){
+  const enabled=$('fr-enabled').value==='true';
+  const intervalDays=parseInt($('fr-interval').value)||7;
+  const minBalance=parseFloat($('fr-minbal').value)||0;
+  const{error}=await DB().from('school_settings').update({
+    fee_reminders_enabled:enabled,fee_reminder_interval_days:intervalDays,fee_reminder_min_balance:minBalance
+  }).eq('id',SCHOOL_SETTINGS.id);
+  if(error){toast('Failed to save: '+error.message,'error');return;}
+  SCHOOL_SETTINGS.fee_reminders_enabled=enabled;
+  SCHOOL_SETTINGS.fee_reminder_interval_days=intervalDays;
+  SCHOOL_SETTINGS.fee_reminder_min_balance=minBalance;
+  toast('Reminder settings saved','success');
+}
+async function _sendFeeRemindersNow(){
+  toast('Sending reminders…','success');
+  const res=await runFeeReminders(true);
+  toast(`Sent ${res.sent} reminder(s)${res.skipped?`, ${res.skipped} failed`:''}`,'success');
+  renderFeeReminders();
+}
+
+// ═══════════════════════════════════════════════════════
+// STAFF PAYROLL
+// Requires table (create once in Supabase SQL editor):
+//   CREATE TABLE IF NOT EXISTS payslips (
+//     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+//     staff_id uuid, staff_name text, role text, period text,
+//     basic_salary numeric DEFAULT 0, allowance_housing numeric DEFAULT 0,
+//     allowance_transport numeric DEFAULT 0, allowance_other numeric DEFAULT 0,
+//     gross_pay numeric DEFAULT 0,
+//     deduction_tax numeric DEFAULT 0, deduction_pension numeric DEFAULT 0,
+//     deduction_other numeric DEFAULT 0, total_deductions numeric DEFAULT 0,
+//     net_pay numeric DEFAULT 0,
+//     bank_name text, bank_account_name text, bank_account_number text,
+//     status text DEFAULT 'generated', paid_at timestamptz,
+//     generated_at timestamptz DEFAULT now(), generated_by text,
+//     UNIQUE(staff_id, period)
+//   );
+// Also add these columns to "profiles" (staff table):
+//   ALTER TABLE profiles ADD COLUMN IF NOT EXISTS basic_salary numeric DEFAULT 0;
+//   ALTER TABLE profiles ADD COLUMN IF NOT EXISTS allowance_housing numeric DEFAULT 0;
+//   ALTER TABLE profiles ADD COLUMN IF NOT EXISTS allowance_transport numeric DEFAULT 0;
+//   ALTER TABLE profiles ADD COLUMN IF NOT EXISTS allowance_other numeric DEFAULT 0;
+//   ALTER TABLE profiles ADD COLUMN IF NOT EXISTS deduction_tax numeric DEFAULT 0;
+//   ALTER TABLE profiles ADD COLUMN IF NOT EXISTS deduction_pension numeric DEFAULT 0;
+//   ALTER TABLE profiles ADD COLUMN IF NOT EXISTS deduction_other numeric DEFAULT 0;
+//   ALTER TABLE profiles ADD COLUMN IF NOT EXISTS staff_bank_name text;
+//   ALTER TABLE profiles ADD COLUMN IF NOT EXISTS staff_bank_account_name text;
+//   ALTER TABLE profiles ADD COLUMN IF NOT EXISTS staff_bank_account_number text;
+// ═══════════════════════════════════════════════════════
+function _currentPayrollPeriod(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+function _payrollPeriodLabel(period){
+  const[y,m]=period.split('-');
+  return new Date(parseInt(y),parseInt(m)-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+}
+function _computePayLine(s){
+  const basic=parseFloat(s.basic_salary)||0;
+  const housing=parseFloat(s.allowance_housing)||0;
+  const transport=parseFloat(s.allowance_transport)||0;
+  const otherAll=parseFloat(s.allowance_other)||0;
+  const gross=basic+housing+transport+otherAll;
+  const tax=parseFloat(s.deduction_tax)||0;
+  const pension=parseFloat(s.deduction_pension)||0;
+  const otherDed=parseFloat(s.deduction_other)||0;
+  const totalDed=tax+pension+otherDed;
+  const net=gross-totalDed;
+  return{basic,housing,transport,otherAll,gross,tax,pension,otherDed,totalDed,net};
+}
+async function renderPayroll(){
+  const period=window._payrollPeriod||_currentPayrollPeriod();
+  window._payrollPeriod=period;
+  setPage('Staff Payroll','Generate and manage monthly staff pay',
+    `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <input id="pr-period" class="input" type="month" value="${period}" style="width:160px;" onchange="window._payrollPeriod=this.value;renderPayroll();">
+      <button class="btn btn-primary btn-sm" onclick="_generatePayrollForPeriod()"><i class="fas fa-bolt"></i> Generate Payroll</button>
+    </div>`);
+  const{data:staffList}=await DB().from('profiles').select('*').neq('role','student').order('full_name');
+  const eligible=(staffList||[]).filter(s=>(parseFloat(s.basic_salary)||0)>0);
+  const{data:slips}=await DB().from('payslips').select('*').eq('period',period).order('staff_name');
+  const slipMap={}; (slips||[]).forEach(sl=>slipMap[sl.staff_id]=sl);
+  const totalNet=(slips||[]).reduce((a,b)=>a+(parseFloat(b.net_pay)||0),0);
+  const paidCount=(slips||[]).filter(sl=>sl.status==='paid').length;
+  setContent(`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px;">
+      <div class="card" style="padding:16px;"><div style="font-size:11px;color:var(--brl);text-transform:uppercase;font-weight:700;">Period</div><div style="font-size:16px;font-weight:800;">${_payrollPeriodLabel(period)}</div></div>
+      <div class="card" style="padding:16px;"><div style="font-size:11px;color:var(--brl);text-transform:uppercase;font-weight:700;">Staff on Payroll</div><div style="font-size:16px;font-weight:800;">${eligible.length}</div></div>
+      <div class="card" style="padding:16px;"><div style="font-size:11px;color:var(--brl);text-transform:uppercase;font-weight:700;">Total Net Pay</div><div style="font-size:16px;font-weight:800;color:#059669;">${fmtMoney(totalNet)}</div></div>
+      <div class="card" style="padding:16px;"><div style="font-size:11px;color:var(--brl);text-transform:uppercase;font-weight:700;">Paid / Generated</div><div style="font-size:16px;font-weight:800;">${paidCount} / ${(slips||[]).length}</div></div>
+    </div>
+    ${!eligible.length?`<div class="card" style="padding:24px;text-align:center;color:var(--brl);">No staff have a basic salary set yet. Edit a staff member (Staff & Teachers) and set their Basic Salary to include them in payroll.</div>`:''}
+    <div class="card" style="overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--crd);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center;">
+        <input class="input" placeholder="🔍 Search staff…" style="max-width:220px;padding:8px 12px;" oninput="filterTbl(this,'pr-tb')">
+        <button class="btn btn-sm btn-secondary" onclick="_markAllPayrollPaid()"><i class="fas fa-check-double"></i> Mark All as Paid</button>
+      </div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="tbl" style="min-width:max-content;">
+        <thead><tr><th>Staff</th><th>Role</th><th>Gross</th><th>Deductions</th><th>Net Pay</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="pr-tb">${eligible.map(s=>{
+          const slip=slipMap[s.id];
+          const pay=slip?{gross:slip.gross_pay,totalDed:slip.total_deductions,net:slip.net_pay}:_computePayLine(s);
+          const status=slip?.status||'not generated';
+          return `<tr>
+            <td style="font-weight:600;color:var(--br);">${escapeHTML(s.full_name)}</td>
+            <td><span class="badge bn">${(s.role||'—').toUpperCase()}</span></td>
+            <td>${fmtMoney(pay.gross)}</td>
+            <td style="color:#EF4444;">${fmtMoney(pay.totalDed)}</td>
+            <td style="font-weight:700;color:#059669;">${fmtMoney(pay.net)}</td>
+            <td>${status==='paid'?'<span style="color:#16A34A;font-weight:700;">Paid</span>':status==='generated'?'<span style="color:#D97706;font-weight:700;">Generated</span>':'<span style="color:var(--brl);">Not generated</span>'}</td>
+            <td style="display:flex;gap:5px;flex-wrap:wrap;">
+              ${slip?`<button onclick="downloadPayslip('${slip.id}')" class="btn btn-sm btn-ghost" style="padding:5px 9px;" title="Download Payslip"><i class="fas fa-file-pdf"></i></button>`:''}
+              ${slip&&slip.status!=='paid'?`<button onclick="_markPayslipPaid('${slip.id}')" class="btn btn-sm btn-secondary" style="padding:5px 9px;" title="Mark Paid"><i class="fas fa-check"></i></button>`:''}
+            </td>
+          </tr>`;
+        }).join('')||''}</tbody>
+      </table></div>
+    </div>
+  `);
+}
+async function _generatePayrollForPeriod(){
+  const period=$('pr-period')?.value||window._payrollPeriod||_currentPayrollPeriod();
+  window._payrollPeriod=period;
+  const{data:staffList}=await DB().from('profiles').select('*').neq('role','student');
+  const eligible=(staffList||[]).filter(s=>(parseFloat(s.basic_salary)||0)>0);
+  if(!eligible.length){toast('No staff with a basic salary set.','error');return;}
+  let created=0,skipped=0;
+  for(const s of eligible){
+    const{data:existing}=await DB().from('payslips').select('id').eq('staff_id',s.id).eq('period',period).maybeSingle();
+    if(existing){skipped++;continue;}
+    const pay=_computePayLine(s);
+    const{error}=await DB().from('payslips').insert({
+      staff_id:s.id,staff_name:s.full_name,role:s.role,period,
+      basic_salary:pay.basic,allowance_housing:pay.housing,allowance_transport:pay.transport,allowance_other:pay.otherAll,
+      gross_pay:pay.gross,deduction_tax:pay.tax,deduction_pension:pay.pension,deduction_other:pay.otherDed,
+      total_deductions:pay.totalDed,net_pay:pay.net,
+      bank_name:s.staff_bank_name||null,bank_account_name:s.staff_bank_account_name||null,bank_account_number:s.staff_bank_account_number||null,
+      status:'generated',generated_by:UP?.full_name||CU?.email||''
+    });
+    if(!error)created++;
+  }
+  toast(`Generated ${created} payslip(s)${skipped?`, ${skipped} already existed`:''}`,'success');
+  renderPayroll();
+}
+async function _markPayslipPaid(id){
+  const{error}=await DB().from('payslips').update({status:'paid',paid_at:new Date().toISOString()}).eq('id',id);
+  if(error){toast('Error: '+error.message,'error');return;}
+  toast('Marked as paid','success');renderPayroll();
+}
+async function _markAllPayrollPaid(){
+  const period=window._payrollPeriod||_currentPayrollPeriod();
+  const{error}=await DB().from('payslips').update({status:'paid',paid_at:new Date().toISOString()}).eq('period',period).neq('status','paid');
+  if(error){toast('Error: '+error.message,'error');return;}
+  toast('All payslips for this period marked as paid','success');renderPayroll();
+}
+async function downloadPayslip(id){
+  const{data:sl,error}=await DB().from('payslips').select('*').eq('id',id).single();
+  if(error||!sl){toast('Payslip not found','error');return;}
+  await window._ensureJsPDF();const{jsPDF}=window.jspdf;
+  const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+  const W=210,SS=SCHOOL_SETTINGS;
+  const logoData=await _loadLogoDataUrl(SS.logo_url||null);
+  pdf.setFillColor(26,107,42);pdf.rect(0,0,W,28,'F');
+  if(logoData){
+    try{pdf.addImage(logoData,'JPEG',11,5,16,16);}catch(e){}
+    pdf.setTextColor(255,255,255);pdf.setFontSize(11.5);pdf.setFont('helvetica','bold');
+    pdf.text(SS.school_name||'SCHOOL',31,11,{maxWidth:W-36});
+    pdf.setFontSize(6.5);pdf.setFont('helvetica','normal');pdf.setTextColor(240,220,210);
+    if(SS.motto)pdf.text(SS.motto,31,17);
+  }else{
+    pdf.setTextColor(255,255,255);pdf.setFontSize(12);pdf.setFont('helvetica','bold');
+    pdf.text(SS.school_name||'SCHOOL',W/2,11,{align:'center',maxWidth:W-20});
+    if(SS.motto){pdf.setFontSize(6.5);pdf.setFont('helvetica','normal');pdf.setTextColor(240,220,210);pdf.text(SS.motto,W/2,17,{align:'center'});}
+  }
+  pdf.setFillColor(37,99,235);pdf.rect(0,28,W,9,'F');
+  pdf.setTextColor(255,255,255);pdf.setFontSize(9);pdf.setFont('helvetica','bold');
+  pdf.text('STAFF PAYSLIP — '+_payrollPeriodLabel(sl.period).toUpperCase(),W/2,34.5,{align:'center'});
+  let y=46;
+  pdf.setTextColor(30,30,30);pdf.setFontSize(10);pdf.setFont('helvetica','bold');
+  pdf.text(sl.staff_name||'',16,y);
+  pdf.setFont('helvetica','normal');pdf.setFontSize(8.5);
+  pdf.text((sl.role||'').replace(/_/g,' ').toUpperCase(),16,y+5);
+  pdf.text('Payslip No: PS-'+sl.id.toString().slice(-6).toUpperCase(),W-16,y,{align:'right'});
+  pdf.text('Date: '+new Date(sl.generated_at||Date.now()).toLocaleDateString(),W-16,y+5,{align:'right'});
+  y+=14;
+  pdf.setDrawColor(220,220,220);pdf.line(16,y,W-16,y);
+  y+=8;
+  const rows=[
+    ['Basic Salary',sl.basic_salary],['Housing Allowance',sl.allowance_housing],
+    ['Transport Allowance',sl.allowance_transport],['Other Allowance',sl.allowance_other]
+  ];
+  pdf.setFont('helvetica','bold');pdf.setFontSize(9);pdf.setTextColor(22,163,74);
+  pdf.text('EARNINGS',16,y);y+=6;
+  pdf.setFont('helvetica','normal');pdf.setTextColor(60,60,60);
+  rows.forEach(([label,val])=>{
+    pdf.text(label,18,y);pdf.text(fmtMoney(val||0),W-18,y,{align:'right'});y+=6;
+  });
+  pdf.setDrawColor(230,230,230);pdf.line(16,y,W-16,y);y+=3;
+  pdf.setFont('helvetica','bold');pdf.text('Gross Pay',18,y+5);pdf.text(fmtMoney(sl.gross_pay||0),W-18,y+5,{align:'right'});
+  y+=15;
+  const dedRows=[['PAYE Tax',sl.deduction_tax],['Pension',sl.deduction_pension],['Other Deductions',sl.deduction_other]];
+  pdf.setFont('helvetica','bold');pdf.setFontSize(9);pdf.setTextColor(220,38,38);
+  pdf.text('DEDUCTIONS',16,y);y+=6;
+  pdf.setFont('helvetica','normal');pdf.setTextColor(60,60,60);
+  dedRows.forEach(([label,val])=>{
+    pdf.text(label,18,y);pdf.text(fmtMoney(val||0),W-18,y,{align:'right'});y+=6;
+  });
+  pdf.setDrawColor(230,230,230);pdf.line(16,y,W-16,y);y+=3;
+  pdf.setFont('helvetica','bold');pdf.text('Total Deductions',18,y+5);pdf.text(fmtMoney(sl.total_deductions||0),W-18,y+5,{align:'right'});
+  y+=18;
+  pdf.setFillColor(240,253,244);pdf.rect(14,y-6,W-28,14,'F');
+  pdf.setTextColor(22,101,52);pdf.setFontSize(11);pdf.setFont('helvetica','bold');
+  pdf.text('NET PAY',18,y+3);
+  pdf.text(fmtMoney(sl.net_pay||0),W-18,y+3,{align:'right'});
+  y+=22;
+  if(sl.bank_name||sl.bank_account_number){
+    pdf.setTextColor(90,90,90);pdf.setFontSize(8);pdf.setFont('helvetica','bold');
+    pdf.text('Payment Details',16,y);y+=5;
+    pdf.setFont('helvetica','normal');
+    pdf.text(`${sl.bank_name||'—'}  ·  ${sl.bank_account_name||'—'}  ·  ${sl.bank_account_number||'—'}`,16,y);y+=8;
+  }
+  pdf.setFontSize(7);pdf.setTextColor(150,150,150);
+  pdf.text('This is a computer-generated payslip and does not require a signature.',W/2,285,{align:'center'});
+  pdf.save(`Payslip_${(sl.staff_name||'staff').replace(/\s+/g,'_')}_${sl.period}.pdf`);
+}
+
+// ═══════════════════════════════════════════════════════
+// RECEPTION / FRONT-DESK — VISITOR LOG & GATE PASS
+// Requires table (create once in Supabase SQL editor):
+//   CREATE TABLE IF NOT EXISTS visitors (
+//     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+//     full_name text, phone text, id_type text, id_number text,
+//     purpose text, host_name text, visiting_student text,
+//     badge_number text, status text DEFAULT 'checked_in',
+//     check_in_time timestamptz DEFAULT now(), check_out_time timestamptz,
+//     logged_by text
+//   );
+// ═══════════════════════════════════════════════════════
+function _genBadgeNumber(){
+  return 'VG-'+new Date().toISOString().slice(2,10).replace(/-/g,'')+'-'+Math.floor(100+Math.random()*900);
+}
+async function renderReception(){
+  setPage('Reception','Visitor log & gate pass',
+    `<button class="btn btn-primary" onclick="_showCheckInModal()"><i class="fas fa-user-plus"></i> Check In Visitor</button>`);
+  const{data:visitors}=await DB().from('visitors').select('*').order('check_in_time',{ascending:false}).limit(200);
+  const checkedIn=(visitors||[]).filter(v=>v.status==='checked_in');
+  const today=new Date().toDateString();
+  const todayCount=(visitors||[]).filter(v=>new Date(v.check_in_time).toDateString()===today).length;
+  setContent(`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px;">
+      <div class="card" style="padding:16px;"><div style="font-size:11px;color:var(--brl);text-transform:uppercase;font-weight:700;">Currently On-Site</div><div style="font-size:20px;font-weight:800;color:#D97706;">${checkedIn.length}</div></div>
+      <div class="card" style="padding:16px;"><div style="font-size:11px;color:var(--brl);text-transform:uppercase;font-weight:700;">Visitors Today</div><div style="font-size:20px;font-weight:800;">${todayCount}</div></div>
+      <div class="card" style="padding:16px;"><div style="font-size:11px;color:var(--brl);text-transform:uppercase;font-weight:700;">Total Logged</div><div style="font-size:20px;font-weight:800;">${(visitors||[]).length}</div></div>
+    </div>
+    <div class="card" style="overflow:hidden;margin-bottom:16px;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--crd);"><h3 style="margin:0;font-size:14px;">On-Site Now (${checkedIn.length})</h3></div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="tbl" style="min-width:max-content;">
+        <thead><tr><th>Badge</th><th>Visitor</th><th>Purpose</th><th>Host</th><th>Check-In</th><th>Actions</th></tr></thead>
+        <tbody>${checkedIn.length?checkedIn.map(v=>`<tr>
+          <td style="font-weight:700;">${escapeHTML(v.badge_number||'—')}</td>
+          <td>${escapeHTML(v.full_name)}<br><span style="font-size:11px;color:var(--brl);">${escapeHTML(v.phone||'')}</span></td>
+          <td>${escapeHTML(v.purpose||'—')}</td>
+          <td>${escapeHTML(v.host_name||'—')}</td>
+          <td style="font-size:12px;">${new Date(v.check_in_time).toLocaleTimeString()}</td>
+          <td style="display:flex;gap:5px;flex-wrap:wrap;">
+            <button onclick="downloadGatePass('${v.id}')" class="btn btn-sm btn-ghost" style="padding:5px 9px;" title="Gate Pass"><i class="fas fa-id-badge"></i></button>
+            <button onclick="_checkOutVisitor('${v.id}')" class="btn btn-sm btn-secondary" style="padding:5px 9px;" title="Check Out"><i class="fas fa-sign-out-alt"></i> Check Out</button>
+          </td>
+        </tr>`).join(''):'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--brl);">No visitors on-site.</td></tr>'}</tbody>
+      </table></div>
+    </div>
+    <div class="card" style="overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--crd);"><input class="input" placeholder="🔍 Search visitor log…" style="max-width:230px;padding:8px 12px;" oninput="filterTbl(this,'rec-tb')"></div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="tbl" style="min-width:max-content;">
+        <thead><tr><th>Badge</th><th>Visitor</th><th>Purpose</th><th>Host</th><th>Check-In</th><th>Check-Out</th><th>Status</th></tr></thead>
+        <tbody id="rec-tb">${(visitors||[]).map(v=>`<tr>
+          <td>${escapeHTML(v.badge_number||'—')}</td>
+          <td>${escapeHTML(v.full_name)}</td>
+          <td>${escapeHTML(v.purpose||'—')}</td>
+          <td>${escapeHTML(v.host_name||'—')}</td>
+          <td style="font-size:12px;">${new Date(v.check_in_time).toLocaleString()}</td>
+          <td style="font-size:12px;">${v.check_out_time?new Date(v.check_out_time).toLocaleString():'—'}</td>
+          <td>${v.status==='checked_in'?'<span style="color:#D97706;font-weight:700;">On-site</span>':'<span style="color:#16A34A;">Checked out</span>'}</td>
+        </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--brl);">No visitor records yet.</td></tr>'}</tbody>
+      </table></div>
+    </div>
+  `);
+}
+function _showCheckInModal(){
+  const{data:staffCache}=window._staffCacheForReception||{data:null};
+  modal(`<div style="padding:26px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h3 class="hf" style="font-size:20px;color:var(--br);">Check In Visitor</h3>
+      <button onclick="closeModal()" style="border:none;background:none;font-size:22px;cursor:pointer;color:var(--brl);">&times;</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:13px;">
+      <div><label class="lbl">Full Name <span style="color:#EF4444;">*</span></label><input id="vc-name" class="input" placeholder="Visitor's full name"></div>
+      <div><label class="lbl">Phone Number</label><input id="vc-phone" class="input" type="tel" placeholder="080xxxxxxxx"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><label class="lbl">ID Type</label>
+          <select id="vc-idtype" class="input">
+            <option value="">— None —</option>
+            <option>National ID</option><option>Driver's License</option><option>Voter's Card</option><option>Staff ID</option><option>Other</option>
+          </select>
+        </div>
+        <div><label class="lbl">ID Number</label><input id="vc-idnum" class="input" placeholder="Optional"></div>
+      </div>
+      <div><label class="lbl">Purpose of Visit <span style="color:#EF4444;">*</span></label>
+        <select id="vc-purpose" class="input">
+          <option>Meeting with Staff</option><option>Meeting with Student's Parent/Guardian</option>
+          <option>Delivery</option><option>Inspection</option><option>Interview</option>
+          <option>Vendor/Contractor</option><option>Event</option><option>Other</option>
+        </select>
+      </div>
+      <div><label class="lbl">Person/Office to See (Host)</label><input id="vc-host" class="input" placeholder="e.g. Mrs. Johnson, Principal's Office"></div>
+      <div><label class="lbl">Visiting Student (if applicable)</label><input id="vc-student" class="input" placeholder="Student name/class"></div>
+    </div>
+    <button onclick="_checkInVisitor()" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:20px;padding:12px;"><i class="fas fa-sign-in-alt"></i> Check In & Generate Gate Pass</button>
+  </div>`);
+}
+async function _checkInVisitor(){
+  const name=($('vc-name')?.value||'').trim();
+  const purpose=$('vc-purpose')?.value||'';
+  if(!name){toast('Visitor name is required.','error');return;}
+  const badge=_genBadgeNumber();
+  const payload={
+    full_name:name,phone:$('vc-phone')?.value||null,
+    id_type:$('vc-idtype')?.value||null,id_number:$('vc-idnum')?.value||null,
+    purpose,host_name:$('vc-host')?.value||null,visiting_student:$('vc-student')?.value||null,
+    badge_number:badge,status:'checked_in',check_in_time:new Date().toISOString(),
+    logged_by:UP?.full_name||CU?.email||''
+  };
+  const{data,error}=await DB().from('visitors').insert(payload).select('id').single();
+  if(error){toast('Error: '+error.message,'error');return;}
+  toast('✅ Visitor checked in','success');
+  closeModal();
+  renderReception();
+  if(data?.id) setTimeout(()=>downloadGatePass(data.id),400);
+}
+async function _checkOutVisitor(id){
+  const{error}=await DB().from('visitors').update({status:'checked_out',check_out_time:new Date().toISOString()}).eq('id',id);
+  if(error){toast('Error: '+error.message,'error');return;}
+  toast('Visitor checked out','success');renderReception();
+}
+async function downloadGatePass(id){
+  const{data:v,error}=await DB().from('visitors').select('*').eq('id',id).single();
+  if(error||!v){toast('Visitor record not found','error');return;}
+  await window._ensureJsPDF();const{jsPDF}=window.jspdf;
+  const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:[95,140]});
+  const W=95,SS=SCHOOL_SETTINGS;
+  pdf.setFillColor(26,107,42);pdf.rect(0,0,W,22,'F');
+  const logoData=await _loadLogoDataUrl(SS.logo_url||null);
+  if(logoData){try{pdf.addImage(logoData,'JPEG',6,4,14,14);}catch(e){}}
+  pdf.setTextColor(255,255,255);pdf.setFontSize(8.5);pdf.setFont('helvetica','bold');
+  pdf.text(SS.school_name||'SCHOOL',logoData?23:W/2,10,{align:logoData?'left':'center',maxWidth:logoData?66:W-10});
+  pdf.setFontSize(6.5);pdf.setFont('helvetica','normal');
+  pdf.text('VISITOR GATE PASS',logoData?23:W/2,16,{align:logoData?'left':'center'});
+  let y=30;
+  pdf.setTextColor(30,30,30);pdf.setFontSize(7);pdf.setFont('helvetica','bold');
+  pdf.text('BADGE NO.',8,y);pdf.setFont('helvetica','normal');pdf.setFontSize(9);pdf.text(v.badge_number||'—',8,y+5);
+  y+=13;
+  const field=(label,val)=>{
+    pdf.setFont('helvetica','bold');pdf.setFontSize(6.5);pdf.setTextColor(120,120,120);pdf.text(label,8,y);
+    pdf.setFont('helvetica','normal');pdf.setFontSize(8.5);pdf.setTextColor(30,30,30);
+    pdf.text(String(val||'—'),8,y+4.5,{maxWidth:W-16});
+    y+=11;
+  };
+  field('VISITOR NAME',v.full_name);
+  field('PHONE',v.phone);
+  field('PURPOSE',v.purpose);
+  field('HOST / OFFICE',v.host_name);
+  if(v.visiting_student) field('VISITING STUDENT',v.visiting_student);
+  field('CHECK-IN TIME',new Date(v.check_in_time).toLocaleString());
+  pdf.setDrawColor(200,200,200);pdf.line(8,y,W-8,y);y+=6;
+  pdf.setFontSize(6);pdf.setTextColor(150,150,150);
+  pdf.text('Please wear this pass visibly at all times and return it at exit.',W/2,y,{align:'center',maxWidth:W-12});
+  pdf.save(`GatePass_${(v.full_name||'visitor').replace(/\s+/g,'_')}.pdf`);
+}
+
+// ═══════════════════════════════════════════════════════
 // PARENT PORTAL — DASHBOARD
 // ═══════════════════════════════════════════════════════
 async function renderParentDash(){
@@ -16982,12 +17763,21 @@ async function renderAcademics(){
   window._acad_assignments=assignments||[];
   window._acad_notes=notes||[];
   window._acad_videos=videos||[];
+  _loadSubmissionCounts(assignments||[]);
+}
+async function _loadSubmissionCounts(assignments){
+  const ids=assignments.map(a=>a.id);
+  if(!ids.length)return;
+  const{data:subs}=await DB().from('assignment_submissions').select('assignment_id').in('assignment_id',ids);
+  const counts={};
+  (subs||[]).forEach(s=>{counts[s.assignment_id]=(counts[s.assignment_id]||0)+1;});
+  ids.forEach(id=>{const el=document.getElementById('sub-count-'+id);if(el)el.textContent=(counts[id]||0)+' submitted';});
 }
 function switchAcadTab(n){
   [0,1,2].forEach(i=>{const b=document.getElementById('ac-tab-'+i);if(b)b.classList.toggle('active',i===n);});
   const c=document.getElementById('ac-tab-content');
   if(!c) return;
-  if(n===0) c.innerHTML=_buildAcadAssignmentsHTML(window._acad_assignments||[]);
+  if(n===0){c.innerHTML=_buildAcadAssignmentsHTML(window._acad_assignments||[]);_loadSubmissionCounts(window._acad_assignments||[]);}
   else if(n===1) c.innerHTML=_buildAcadNotesHTML(window._acad_notes||[]);
   else c.innerHTML=_buildAcadVideosHTML(window._acad_videos||[]);
 }
@@ -17005,7 +17795,10 @@ function _buildAcadAssignmentsHTML(items){
         ${a.image_url?`<img src="${a.image_url}" style="max-width:200px;border-radius:9px;margin-top:8px;border:1px solid var(--crd);">`:''}
         ${a.submission_date?`<div style="margin-top:8px;font-size:11.5px;color:#EF4444;font-weight:600;"><i class="fas fa-calendar-times"></i> Due: ${fmtDate(a.submission_date)}</div>`:''}
       </div>
-      <div style="display:flex;flex-direction:column;gap:5px;">${_acardActionBtns('academic_assignments',a.id)}</div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <button onclick="viewAssignmentSubmissions('${a.id}','${escapeHTML((a.title||'').replace(/'/g,"&#39;"))}',${a.max_score||100})" class="btn btn-sm btn-secondary" style="padding:5px 9px;white-space:nowrap;" title="View Submissions"><i class="fas fa-inbox"></i> <span id="sub-count-${a.id}">…</span></button>
+        ${_acardActionBtns('academic_assignments',a.id)}
+      </div>
     </div>
     <div style="margin-top:8px;font-size:11px;color:var(--brl);">${a.term||'—'} · ${a.session||'—'} · ${fmtDate(a.created_at)}</div>
   </div>`).join('')}</div>`;
@@ -17087,7 +17880,8 @@ async function showCreateAcademicModal(type){
           <input id="acm-img-file" type="file" accept="image/*" class="input" style="padding:8px;">
         </div>`}
       ${isAssignment?`<div><label class="lbl">Submission Date</label><input id="acm-subdate" class="input" type="date"></div>
-        <div><label class="lbl">Type</label><select id="acm-type" class="input"><option value="assignment">Assignment</option><option value="homework">Homework</option><option value="project">Project</option></select></div>`:''}
+        <div><label class="lbl">Type</label><select id="acm-type" class="input"><option value="assignment">Assignment</option><option value="homework">Homework</option><option value="project">Project</option></select></div>
+        <div><label class="lbl">Max Score</label><input id="acm-maxscore" class="input" type="number" min="1" value="100"></div>`:''}
     </div>
     <div style="display:flex;gap:9px;margin-top:18px;">
       <button onclick="saveAcademicItem('${type}')" class="btn btn-primary" style="flex:1;justify-content:center;padding:12px;" id="acm-save-btn">
@@ -17151,6 +17945,7 @@ async function saveAcademicItem(type){
     if(isAssignment){
       payload.submission_date=document.getElementById('acm-subdate')?.value||null;
       payload.type=document.getElementById('acm-type')?.value||'assignment';
+      payload.max_score=parseFloat(document.getElementById('acm-maxscore')?.value)||100;
     }
   }
   const tbl=isVideo?'academic_videos':isAssignment?'academic_assignments':'academic_notes';
@@ -17163,6 +17958,58 @@ async function deleteAcadItem(table,id){
   if(!confirm('Delete this item?')) return;
   await DB().from(table).delete().eq('id',id);
   toast('Deleted.');renderAcademics();
+}
+async function viewAssignmentSubmissions(assignmentId,title,maxScore){
+  const{data:subs}=await DB().from('assignment_submissions').select('*').eq('assignment_id',assignmentId).order('submitted_at',{ascending:false});
+  modal(`<div style="padding:26px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <h3 class="hf" style="font-size:19px;color:var(--br);">Submissions — ${escapeHTML(title)}</h3>
+      <button onclick="closeModal()" style="border:none;background:none;font-size:21px;cursor:pointer;color:var(--brl);">&times;</button>
+    </div>
+    <div style="max-height:65vh;overflow-y:auto;display:flex;flex-direction:column;gap:12px;">
+      ${(subs||[]).length?(subs||[]).map(s=>`
+        <div class="card" style="padding:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
+            <div style="font-weight:700;color:var(--br);">${escapeHTML(s.student_name||'')}</div>
+            <div style="font-size:11px;color:var(--brl);">${new Date(s.submitted_at).toLocaleString()}</div>
+          </div>
+          ${s.text_answer?`<div style="font-size:13px;color:#4A3728;margin-top:8px;white-space:pre-wrap;line-height:1.6;">${escapeHTML(s.text_answer)}</div>`:''}
+          ${s.file_url?`<a href="${s.file_url}" target="_blank" class="btn btn-sm btn-ghost" style="margin-top:8px;"><i class="fas fa-paperclip"></i> View Attached File</a>`:''}
+          <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+            <label class="lbl" style="margin:0;">Score</label>
+            <input id="grade-score-${s.id}" class="input" type="number" min="0" max="${s.max_score||maxScore||100}" value="${s.score??''}" style="width:90px;">
+            <span style="font-size:12px;color:var(--brl);">/ ${s.max_score||maxScore||100}</span>
+          </div>
+          <textarea id="grade-fb-${s.id}" class="input" rows="2" style="margin-top:8px;resize:vertical;" placeholder="Feedback (optional)">${escapeHTML(s.feedback||'')}</textarea>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+            <span>${s.status==='graded'?'<span style="color:#16A34A;font-weight:700;font-size:12px;"><i class="fas fa-check-circle"></i> Graded</span>':'<span style="color:#D97706;font-weight:700;font-size:12px;"><i class="fas fa-clock"></i> Pending</span>'}</span>
+            <button onclick="gradeSubmission('${s.id}','${assignmentId}','${escapeHTML(title.replace(/'/g,"&#39;"))}',${maxScore||100})" class="btn btn-sm btn-primary"><i class="fas fa-save"></i> Save Grade</button>
+          </div>
+        </div>`).join(''):'<div style="text-align:center;padding:30px;color:var(--brl);">No submissions yet.</div>'}
+    </div>
+  </div>`,'620px');
+}
+async function gradeSubmission(id,assignmentId,title,maxScore){
+  const score=parseFloat(document.getElementById('grade-score-'+id)?.value);
+  const feedback=document.getElementById('grade-fb-'+id)?.value||null;
+  if(isNaN(score)){toast('Enter a score.','error');return;}
+  const{data:sub}=await DB().from('assignment_submissions').select('student_id,student_name').eq('id',id).single();
+  const{error}=await DB().from('assignment_submissions').update({
+    score,feedback,status:'graded',graded_at:new Date().toISOString(),graded_by:UP?.full_name||CU?.email||''
+  }).eq('id',id);
+  if(error){toast('Error: '+error.message,'error');return;}
+  toast('✅ Grade saved','success');
+  try{
+    if(sub?.student_id){
+      const{data:stu}=await DB().from('students').select('email').eq('id',sub.student_id).maybeSingle();
+      if(stu?.email){
+        await sendEmailDelivery({toEmail:stu.email,toName:sub.student_name,
+          subject:`Assignment Graded — ${title}`,
+          bodyHtml:`Dear ${escapeHTML(sub.student_name||'')},<br><br>Your submission for <strong>${escapeHTML(title)}</strong> has been graded.<br><br>Score: <strong>${score} / ${maxScore}</strong><br>${feedback?'Feedback: '+escapeHTML(feedback):''}<br><br>${escapeHTML(SCHOOL_SETTINGS?.school_name||'')}`});
+      }
+    }
+  }catch(e){}
+  viewAssignmentSubmissions(assignmentId,title,maxScore);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -17196,6 +18043,13 @@ async function renderStudentAcademics(){
   const filteredA=filterByReg(assignments);
   const filteredN=filterByReg(notes);
   const filteredV=filterByReg(videos);
+  const aIds=filteredA.map(a=>a.id);
+  let mySubs={};
+  if(aIds.length){
+    const{data:subs}=await DB().from('assignment_submissions').select('*').eq('student_id',UP.id).in('assignment_id',aIds);
+    (subs||[]).forEach(s=>{mySubs[s.assignment_id]=s;});
+  }
+  window._st_my_subs=mySubs;
   setContent(`
     <div style="display:flex;gap:4px;background:var(--cr);border-radius:13px;padding:4px;margin-bottom:20px;max-width:580px;">
       <button id="st-ac-tab-0" class="tab-btn active" onclick="switchStudentAcadTab(0)"><i class="fas fa-people-arrows"></i> Assignments (${filteredA.length})</button>
@@ -17219,7 +18073,28 @@ function switchStudentAcadTab(n){
 }
 function _buildStudentAssignmentsHTML(items){
   if(!items.length) return '<div class="card" style="padding:40px;text-align:center;"><i class="fas fa-check-circle fa-2x" style="color:var(--brl);margin-bottom:14px;"></i><div style="font-weight:700;color:var(--br);">No assignment available</div><p style="color:var(--brl);font-size:13px;margin-top:6px;">Check back later — your teacher has not posted any assignments yet.</p></div>';
-  return `<div style="display:flex;flex-direction:column;gap:14px;">${items.map(a=>`<div class="card" style="padding:20px;border-left:4px solid ${a.type==='project'?'#7C3AED':a.type==='homework'?'#2563EB':'#D97706'};">
+  const mySubs=window._st_my_subs||{};
+  return `<div style="display:flex;flex-direction:column;gap:14px;">${items.map(a=>{
+    const sub=mySubs[a.id];
+    const overdue=a.submission_date&&new Date(a.submission_date)<new Date()&&!sub;
+    let subBlock='';
+    if(sub){
+      subBlock=`<div style="margin-top:14px;padding:14px;border-radius:11px;background:${sub.status==='graded'?'#F0FDF4':'#FFFBEB'};border:1px solid ${sub.status==='graded'?'#BBF7D0':'#FDE68A'};">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+          <span style="font-weight:700;font-size:12.5px;color:${sub.status==='graded'?'#166534':'#92400E'};"><i class="fas ${sub.status==='graded'?'fa-check-circle':'fa-clock'}"></i> ${sub.status==='graded'?'Graded':'Submitted — awaiting grade'}</span>
+          <span style="font-size:11px;color:var(--brl);">Submitted ${fmtDate(sub.submitted_at)}</span>
+        </div>
+        ${sub.status==='graded'?`<div style="margin-top:8px;font-size:14px;font-weight:800;color:#166534;">Score: ${sub.score} / ${sub.max_score||a.max_score||100}</div>${sub.feedback?`<div style="margin-top:4px;font-size:12.5px;color:#4A3728;">Feedback: ${escapeHTML(sub.feedback)}</div>`:''}`:''}
+      </div>`;
+    }else{
+      subBlock=`<div style="margin-top:14px;">
+        <textarea id="ans-${a.id}" class="input" rows="3" style="resize:vertical;" placeholder="Type your answer here…"></textarea>
+        <input id="file-${a.id}" type="file" accept="image/*,.pdf" class="input" style="padding:8px;margin-top:8px;">
+        <button onclick="submitAssignment('${a.id}')" class="btn btn-primary btn-sm" style="margin-top:8px;"><i class="fas fa-paper-plane"></i> Submit ${overdue?'(Late)':''}</button>
+        ${overdue?'<div style="font-size:11px;color:#EF4444;margin-top:4px;">This assignment is past its due date but can still be submitted.</div>':''}
+      </div>`;
+    }
+    return `<div class="card" style="padding:20px;border-left:4px solid ${a.type==='project'?'#7C3AED':a.type==='homework'?'#2563EB':'#D97706'};">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
       <div>
         <div style="font-weight:700;font-size:15px;color:var(--br);">${escapeHTML(a.title)}</div>
@@ -17230,7 +18105,33 @@ function _buildStudentAssignmentsHTML(items){
     <div style="font-size:13.5px;color:#4A3728;line-height:1.7;white-space:pre-wrap;">${escapeHTML(a.content||'')}</div>
     ${a.image_url?`<img src="${a.image_url}" style="max-width:100%;max-height:320px;object-fit:contain;border-radius:11px;margin-top:12px;border:1px solid var(--crd);">`:''}
     <div style="margin-top:10px;font-size:11px;color:var(--brl);">Posted: ${fmtDate(a.created_at)}</div>
-  </div>`).join('')}</div>`;
+    ${subBlock}
+  </div>`;
+  }).join('')}</div>`;
+}
+async function submitAssignment(assignmentId){
+  const textEl=document.getElementById('ans-'+assignmentId);
+  const fileEl=document.getElementById('file-'+assignmentId);
+  const text=(textEl?.value||'').trim();
+  const file=fileEl?.files?.[0];
+  if(!text&&!file){toast('Type an answer or attach a file before submitting.','error');return;}
+  const assignment=(window._st_acad_assignments||[]).find(a=>a.id===assignmentId);
+  let fileUrl=null,fileType=null;
+  if(file){
+    try{
+      fileUrl=await uploadToCloudinary(file,`vis/assignments/${UP?.id||'student'}`);
+      fileType=file.type;
+    }catch(e){toast('File upload failed: '+e.message,'error');return;}
+  }
+  const payload={
+    assignment_id:assignmentId,student_id:UP.id,student_name:UP.full_name,class_id:UP.class_id,
+    text_answer:text||null,file_url:fileUrl,file_type:fileType,status:'submitted',
+    max_score:assignment?.max_score||100,submitted_at:new Date().toISOString()
+  };
+  const{error}=await DB().from('assignment_submissions').insert(payload);
+  if(error){toast('Error: '+error.message,'error');return;}
+  toast('✅ Assignment submitted!','success');
+  renderStudentAcademics();
 }
 function _buildStudentNotesHTML(items){
   if(!items.length) return '<div class="card" style="padding:40px;text-align:center;"><i class="fas fa-book-open fa-2x" style="color:var(--brl);margin-bottom:14px;"></i><div style="font-weight:700;color:var(--br);">No lesson note available</div><p style="color:var(--brl);font-size:13px;margin-top:6px;">Your teacher has not posted any notes yet.</p></div>';
@@ -19313,6 +20214,7 @@ function filterExpTable(q){
 }
 
 window.addEventListener('DOMContentLoaded',async()=>{
+  applyTranslations();
   // ── PWA: register service worker ─────────────────────────────────────────
   if ('serviceWorker' in navigator) {
     // Preflight check: only register if sw.js actually exists on this host.
