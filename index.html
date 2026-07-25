@@ -13450,22 +13450,29 @@ async function _generatePayrollForPeriod(){
   const{data:staffList}=await DB().from('profiles').select('*').neq('role','student');
   const eligible=(staffList||[]).filter(s=>(parseFloat(s.basic_salary)||0)>0);
   if(!eligible.length){toast('No staff with a basic salary set.','error');return;}
-  let created=0,skipped=0;
+  let created=0,skipped=0;const errs=[];
   for(const s of eligible){
-    const{data:existing}=await DB().from('payslips').select('id').eq('staff_id',s.id).eq('period',period).maybeSingle();
-    if(existing){skipped++;continue;}
-    const pay=_computePayLine(s);
-    const{error}=await DB().from('payslips').insert({
-      staff_id:s.id,staff_name:s.full_name,role:s.role,period,
-      basic_salary:pay.basic,allowance_housing:pay.housing,allowance_transport:pay.transport,allowance_other:pay.otherAll,
-      gross_pay:pay.gross,deduction_tax:pay.tax,deduction_pension:pay.pension,deduction_other:pay.otherDed,
-      total_deductions:pay.totalDed,net_pay:pay.net,
-      bank_name:s.staff_bank_name||null,bank_account_name:s.staff_bank_account_name||null,bank_account_number:s.staff_bank_account_number||null,
-      status:'generated',generated_by:UP?.full_name||CU?.email||''
-    });
-    if(!error)created++;
+    try{
+      const{data:existing,error:exErr}=await DB().from('payslips').select('id').eq('staff_id',s.id).eq('period',period).maybeSingle();
+      if(exErr){errs.push(`${s.full_name}: ${exErr.message||exErr.code||'lookup failed'}`);continue;}
+      if(existing){skipped++;continue;}
+      const pay=_computePayLine(s);
+      const{error}=await DB().from('payslips').insert({
+        staff_id:s.id,staff_name:s.full_name,role:s.role,period,
+        basic_salary:pay.basic,allowance_housing:pay.housing,allowance_transport:pay.transport,allowance_other:pay.otherAll,
+        gross_pay:pay.gross,deduction_tax:pay.tax,deduction_pension:pay.pension,deduction_other:pay.otherDed,
+        total_deductions:pay.totalDed,net_pay:pay.net,
+        bank_name:s.staff_bank_name||null,bank_account_name:s.staff_bank_account_name||null,bank_account_number:s.staff_bank_account_number||null,
+        status:'generated',generated_by:UP?.full_name||CU?.email||''
+      });
+      if(!error){created++;}else{console.error('Payroll insert failed for',s.full_name,error);errs.push(`${s.full_name}: ${error.message||error.code||'insert failed'}`);}
+    }catch(ex){console.error('Payroll error for',s.full_name,ex);errs.push(`${s.full_name}: ${ex.message||'unexpected error'}`);}
   }
-  toast(`Generated ${created} payslip(s)${skipped?`, ${skipped} already existed`:''}`,'success');
+  if(errs.length){
+    toast(`Generated ${created} payslip(s), ${errs.length} failed — ${errs[0]}${errs.length>1?` (+${errs.length-1} more, see console)`:''}`,'error');
+  }else{
+    toast(`Generated ${created} payslip(s)${skipped?`, ${skipped} already existed`:''}`,'success');
+  }
   renderPayroll();
 }
 async function _markPayslipPaid(id){
@@ -13486,7 +13493,11 @@ async function downloadPayslip(id){
   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
   const W=210,SS=SCHOOL_SETTINGS;
   const logoData=await _loadLogoDataUrl(SS.logo_url||null);
-  pdf.setFillColor(26,107,42);pdf.rect(0,0,W,28,'F');
+  const priHex=SS.primary_color||'#1A6B2A';
+  const priDarkHex=shadeColor(priHex,-20);
+  const[pR,pG,pB]=[priHex.slice(1,3),priHex.slice(3,5),priHex.slice(5,7)].map(h=>parseInt(h,16));
+  const[dR,dG,dB]=[priDarkHex.slice(1,3),priDarkHex.slice(3,5),priDarkHex.slice(5,7)].map(h=>parseInt(h,16));
+  pdf.setFillColor(pR,pG,pB);pdf.rect(0,0,W,28,'F');
   if(logoData){
     try{pdf.addImage(logoData,'JPEG',11,5,16,16);}catch(e){}
     pdf.setTextColor(255,255,255);pdf.setFontSize(11.5);pdf.setFont('helvetica','bold');
@@ -13498,7 +13509,7 @@ async function downloadPayslip(id){
     pdf.text(SS.school_name||'SCHOOL',W/2,11,{align:'center',maxWidth:W-20});
     if(SS.motto){pdf.setFontSize(6.5);pdf.setFont('helvetica','normal');pdf.setTextColor(240,220,210);pdf.text(SS.motto,W/2,17,{align:'center'});}
   }
-  pdf.setFillColor(37,99,235);pdf.rect(0,28,W,9,'F');
+  pdf.setFillColor(dR,dG,dB);pdf.rect(0,28,W,9,'F');
   pdf.setTextColor(255,255,255);pdf.setFontSize(9);pdf.setFont('helvetica','bold');
   pdf.text('STAFF PAYSLIP — '+_payrollPeriodLabel(sl.period).toUpperCase(),W/2,34.5,{align:'center'});
   let y=46;
