@@ -2286,6 +2286,7 @@ async function renderDashboard(){
   const today=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
   setPage(`${greet}, ${fn} 👋`,`${today} · ${SCHOOL_SETTINGS.current_term} · ${SCHOOL_SETTINGS.current_session}`);
   if(ROLE==='student'){renderStudentDash();return;}
+  if(ROLE==='parent'){renderParentDash();return;}
   if(ROLE==='pin_viewer'){renderMyResults();return;}
   if(ROLE==='bursar'){renderBursarDash();return;}
   if(ROLE==='teacher'){renderTeacherDash();return;}
@@ -10234,8 +10235,7 @@ async function confirmProfileEmailOTP(){
   sessionStorage.removeItem('vis_email_otp_hash');
   sessionStorage.removeItem('vis_email_otp_expiry');
   sessionStorage.removeItem('vis_email_pending');
-  const table=ROLE==='student'?'students':'profiles';
-  // FIX 7: Always persist email_verified to DB — never rely on localStorage
+  const table=ROLE==='student'?'students':ROLE==='parent'?'parents':'profiles';
   const{error:evErr}=await DB().from(table).update({email:newEmail,email_verified:true}).eq('id',UP?.id);
   if(evErr){
     // Column may not exist yet — update email only, log warning
@@ -10274,7 +10274,7 @@ async function saveProfile(){
   const address=$('pf-address')?.value.trim();
   const pass=$('pf-pass')?.value;
   if(!name){toast('Name is required.','error');return;}
-  const table=ROLE==='student'?'students':'profiles';
+  const table=ROLE==='student'?'students':ROLE==='parent'?'parents':'profiles';
   const upd={full_name:name,gender,profile_completed:true};
   if(phone) upd.phone=phone;
   if(address) upd.address=address;
@@ -10605,7 +10605,7 @@ async function saveProfileCompletion(){
   if(!name||!gender||!phone||!address){toast('Please fill in all required fields.','error');return;}
   if(!pass||pass.length<6){toast('Password must be at least 6 characters.','error');return;}
   if(pass!==pass2){toast('Passwords do not match.','error');return;}
-  const table=ROLE==='student'?'students':'profiles';
+  const table=ROLE==='student'?'students':ROLE==='parent'?'parents':'profiles';
   const upd={full_name:name,gender,phone,address,profile_completed:true};
   if(window._cmpAvatarUrl) upd.avatar_url=window._cmpAvatarUrl;
   if(UP?.id){
