@@ -4887,9 +4887,18 @@ async function downloadResultPDF(){
   const card=document.getElementById('result-card');
   if(!card){toast('Result not loaded.','error');return;}
   toast('Generating PDF…');
+  // ── Render a clone at a fixed A4-ish desktop width (794px, same as the
+  // staff/bulk PDF generator) off-screen, instead of snapshotting the live
+  // card at the phone's narrow viewport width. Without this, the grading
+  // scale sidebar and academic table columns get squeezed and overlap on
+  // mobile screens, even though the same template looks fine on desktop. ──
+  const stage=document.createElement('div');
+  stage.style.cssText='position:fixed;left:-9999px;top:0;width:794px;background:#fff;z-index:-1;pointer-events:none;';
+  stage.appendChild(card.cloneNode(true));
+  document.body.appendChild(stage);
   try{
     await window._ensureHtml2Canvas();
-    const canvas=await html2canvas(card,{scale:2.3,useCORS:true,logging:false,backgroundColor:'#ffffff'});
+    const canvas=await html2canvas(stage.firstChild,{scale:2.3,useCORS:true,logging:false,backgroundColor:'#ffffff'});
     const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
     const W=pdf.internal.pageSize.getWidth(),H=pdf.internal.pageSize.getHeight();
     const margin=6,usableW=W-margin*2,usableH=H-margin*2;
@@ -4916,6 +4925,7 @@ async function downloadResultPDF(){
       toast('✅ PDF saved & uploaded to cloud!');
     }catch(e){ toast('✅ PDF downloaded (cloud upload failed: '+e.message+')'); }
   }catch(e){toast('PDF error: '+e.message,'error');}
+  finally{ stage.remove(); }
 }
 // ═══════════════════════════════════════════
 // COMBINED CLASS PDF GENERATION
