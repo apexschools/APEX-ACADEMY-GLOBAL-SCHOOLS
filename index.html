@@ -13982,13 +13982,30 @@ async function renderParentResults(){
 }
 
 async function parentDownloadResultPDF(studentId,term,session){
-  // Reuse existing download function by temporarily setting context
-  const origRole=ROLE;
-  UP._override_student_id=studentId;
-  UP._pin_term=term;UP._pin_sess=session;
-  ROLE='pin_viewer';
-  await renderMyResults();
-  setTimeout(()=>{downloadResultPDF();ROLE=origRole;UP._override_student_id=null;},1500);
+  // Reuse the student-facing PDF generator by briefly impersonating the
+  // child's own record. Previously this only set flags (_override_student_id,
+  // _pin_term/_pin_sess) that loadMyResults() never actually reads — it reads
+  // UP.admission_number directly, which is the PARENT's record (no admission
+  // number at all), so the download always failed with "no results found."
+  const returnPage=window._currentPage; // remember what to restore afterward
+  const origRole=ROLE, origUP=UP;
+  toast('Preparing PDF…');
+  try{
+    const{data:student,error}=await DB().from('students').select('*').eq('id',studentId).single();
+    if(!student||error){toast('Could not load student record for PDF.','error');return;}
+    ROLE='pin_viewer';
+    UP={...student,_pin_term:term,_pin_sess:session};
+    await renderMyResults(); // auto-loads via loadMyResults(), now using the CHILD's real admission_number
+    await new Promise(r=>setTimeout(r,1200)); // let the async fetch + DOM paint settle before snapshotting
+    if(document.getElementById('result-card')) await downloadResultPDF();
+    else toast('No published result found for this term/session.','error');
+  }catch(e){console.error('[parentDownloadResultPDF]',e);toast('Could not generate PDF.','error');}
+  finally{
+    // Always restore the real parent identity and the page they were on —
+    // never leave them stranded on the "My Results" student screen.
+    ROLE=origRole; UP=origUP;
+    if(returnPage && typeof window[returnPage]==='function') window[returnPage]();
+  }
 }
 
 async function renderParentAttendance(){
