@@ -13901,7 +13901,11 @@ async function renderParentDash(){
     DB().from('results').select('*').eq('student_id',child.id).order('created_at',{ascending:false}).limit(10)
   ]);
   const totalFees=(fees||[]).reduce((s,f)=>s+(f.amount||0),0);
-  const paidFees=(fees||[]).filter(f=>f.status==='paid').reduce((s,f)=>s+(f.amount||0),0);
+  const paidFees=(fees||[]).reduce((s,f)=>{
+    if(f.status==='paid')   return s+(f.amount||0);
+    if(f.status==='partial')return s+(parseFloat(f.amount_paid)||0);
+    return s;
+  },0);
   const balance=totalFees-paidFees;
   const attPct=attRecs?.length?Math.round((attRecs.filter(r=>r.morning_status==='present').length/attRecs.length)*100):0;
   const avgScore=lastResult?.length?Math.round(lastResult.reduce((s,r)=>s+(r.total_score||0),0)/lastResult.length):0;
@@ -14029,7 +14033,13 @@ async function renderParentFees(){
   const siblings=await getSiblings();
   const{data:fees}=await DB().from('fee_payments').select('*').eq('student_id',child.id).order('created_at',{ascending:false});
   const total=(fees||[]).reduce((s,f)=>s+(f.amount||0),0);
-  const paid=(fees||[]).filter(f=>f.status==='paid').reduce((s,f)=>s+(f.amount||0),0);
+  // ── Fully-paid invoices count their full amount; partially-paid invoices
+  // count whatever has actually been collected (amount_paid), not zero. ──
+  const paid=(fees||[]).reduce((s,f)=>{
+    if(f.status==='paid')   return s+(f.amount||0);
+    if(f.status==='partial')return s+(parseFloat(f.amount_paid)||0);
+    return s;
+  },0);
   const balance=total-paid;
   const parentEmail=UP?.email||CU?.email||'';
   setContent(`
