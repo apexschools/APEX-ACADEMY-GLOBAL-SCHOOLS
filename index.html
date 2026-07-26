@@ -2119,7 +2119,7 @@ async function initiatePaystack(paymentId, totalAmount, amountPaid, balance){
       }).eq('id',paymentId);
       if(error){toast('Payment recorded but DB update failed: '+error.message,'error');}
       else toast('✅ Payment of '+fmtMoney(payAmt)+' confirmed! Ref: '+response.reference);
-      loadFinanceTable();
+      if(ROLE==='parent') renderParentFees(); else loadFinanceTable();
     },
     onClose:function(){toast('Payment window closed.','error');}
   });
@@ -13930,13 +13930,15 @@ async function renderParentDash(){
     </div>`);
 }
 
-function switchChild(id){UP._activeChildId=id;renderParentDash();}
+function switchChild(id,fnName){UP._activeChildId=id;(window[fnName]||renderParentDash)();}
 
 async function renderParentResults(){
   setPage('Results','Academic performance for your child');
   const child=await getActiveChild();if(!child)return;
+  const siblings=await getSiblings();
+  const switcherHTML=childSwitcherBar(siblings,child.id,'renderParentResults');
   const{data:results}=await DB().from('results').select('*').eq('student_id',child.id).order('created_at',{ascending:false});
-  if(!results?.length){setContent('<div class="card" style="padding:32px;text-align:center;"><p style="color:var(--brl);">No published results yet.</p></div>');return;}
+  if(!results?.length){setContent(switcherHTML+'<div class="card" style="padding:32px;text-align:center;"><p style="color:var(--brl);">No published results yet.</p></div>');return;}
   // Group by term/session
   const groups={};
   results.forEach(r=>{const k=(r.term||'')+'|'+(r.session||'');if(!groups[k])groups[k]={term:r.term,session:r.session,results:[]};groups[k].results.push(r);});
@@ -13956,7 +13958,7 @@ async function renderParentResults(){
         </tr>`).join('')}</tbody>
       </table></div>
     </div>`).join('');
-  setContent(html);
+  setContent(switcherHTML+html);
 }
 
 async function parentDownloadResultPDF(studentId,term,session){
@@ -13972,12 +13974,15 @@ async function parentDownloadResultPDF(studentId,term,session){
 async function renderParentAttendance(){
   setPage('Attendance','View attendance records');
   const child=await getActiveChild();if(!child)return;
+  const siblings=await getSiblings();
+  const switcherHTML=childSwitcherBar(siblings,child.id,'renderParentAttendance');
   const{data:recs}=await DB().from('attendance_records').select('*').eq('student_id',child.id).order('date',{ascending:false});
-  if(!recs?.length){setContent('<div class="card" style="padding:32px;text-align:center;"><p style="color:var(--brl);">No attendance records yet.</p></div>');return;}
+  if(!recs?.length){setContent(switcherHTML+'<div class="card" style="padding:32px;text-align:center;"><p style="color:var(--brl);">No attendance records yet.</p></div>');return;}
   const present=recs.filter(r=>r.morning_status==='present').length;
   const absent=recs.filter(r=>r.morning_status==='absent').length;
   const pct=recs.length?Math.round(present/recs.length*100):0;
   setContent(`
+    ${switcherHTML}
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;">
       ${sc('Total Days',recs.length,'fa-calendar','#1A6B2A','#F0F7F0')}
       ${sc('Present',present,'fa-check-circle','#16A34A','#DCFCE7')}
@@ -14005,11 +14010,14 @@ async function renderParentAttendance(){
 async function renderParentFees(){
   setPage('Fees & Payments','Fee status and payment history');
   const child=await getActiveChild();if(!child)return;
+  const siblings=await getSiblings();
   const{data:fees}=await DB().from('fee_payments').select('*').eq('student_id',child.id).order('created_at',{ascending:false});
   const total=(fees||[]).reduce((s,f)=>s+(f.amount||0),0);
   const paid=(fees||[]).filter(f=>f.status==='paid').reduce((s,f)=>s+(f.amount||0),0);
   const balance=total-paid;
+  const parentEmail=UP?.email||CU?.email||'';
   setContent(`
+    ${childSwitcherBar(siblings,child.id,'renderParentFees')}
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;">
       ${sc('Total Fees','₦'+total.toLocaleString(),'fa-file-invoice','#1A6B2A','#F0F7F0')}
       ${sc('Amount Paid','₦'+paid.toLocaleString(),'fa-check-circle','#16A34A','#DCFCE7')}
@@ -14018,14 +14026,20 @@ async function renderParentFees(){
     <div class="card" style="overflow:hidden;">
       <div style="padding:14px 18px;border-bottom:1px solid var(--crd);font-weight:700;color:var(--br);">Payment History</div>
       <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="tbl" style="min-width:max-content;">
-        <thead><tr><th>Description</th><th>Amount</th><th>Status</th><th>Date</th><th>Receipt</th></tr></thead>
-        <tbody>${(fees||[]).map(f=>`<tr>
+        <thead><tr><th>Description</th><th>Amount</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+        <tbody>${(fees||[]).map(f=>{
+          const due=parseFloat(f.amount)||0;
+          const amtPaid=parseFloat(f.amount_paid)||0;
+          const isPaid=f.status==='paid';
+          return`<tr>
           <td>${f.fee_type||f.description||'School Fees'}</td>
-          <td style="font-weight:600;">₦${(f.amount||0).toLocaleString()}</td>
-          <td>${f.status==='paid'?'<span class="badge bg">Paid</span>':'<span class="badge bo">Pending</span>'}</td>
+          <td style="font-weight:600;">₦${due.toLocaleString()}</td>
+          <td>${isPaid?'<span class="badge bg">Paid</span>':f.status==='partial'?'<span class="badge bo">Part Paid</span>':'<span class="badge br-b">Unpaid</span>'}</td>
           <td style="color:var(--brl);">${fmtDate(f.paid_at||f.created_at)}</td>
-          <td>${f.status==='paid'?`<button onclick="viewReceipt('${f.id}','${escapeHTML(child.full_name)}','${f.fee_type||'Fees'}','${f.amount}','${f.paid_at}')" class="btn btn-sm btn-outline"><i class="fas fa-receipt"></i></button>`:'—'}</td>
-        </tr>`).join('')||'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--brl);">No payment records yet.</td></tr>'}</tbody>
+          <td>${isPaid
+            ?`<button onclick="viewReceipt('${f.id}','${escapeHTML(child.full_name)}','${f.fee_type||'Fees'}','${f.amount}','${f.paid_at}')" class="btn btn-sm btn-outline"><i class="fas fa-receipt"></i></button>`
+            :`<button onclick="showPaystackModal('${f.id}','${escapeHTML(child.full_name.replace(/'/g,"&#39;"))}','${(f.fee_type||'School Fees').replace(/'/g,"&#39;")}',${due},${amtPaid},'${parentEmail}')" class="btn btn-sm btn-primary" style="background:#059669;"><i class="fas fa-credit-card"></i> Pay Now</button>`}</td>
+        </tr>`;}).join('')||'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--brl);">No fees invoiced for this child yet.</td></tr>'}</tbody>
       </table></div>
     </div>`);
 }
@@ -14082,10 +14096,12 @@ async function sendParentMessage(){
 async function renderParentDocuments(){
   setPage('Documents & Files','Download your child\'s documents');
   const child=await getActiveChild();if(!child)return;
+  const siblings=await getSiblings();
   const{data:results}=await DB().from('results').select('term,session').eq('student_id',child.id);
   const terms=[...new Set((results||[]).map(r=>r.term+'|'+r.session))];
   const{data:adm}=await DB().from('admissions').select('*').eq('full_name',child.full_name).limit(1);
   setContent(`
+    ${childSwitcherBar(siblings,child.id,'renderParentDocuments')}
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;">
       ${terms.map(t=>{const[term,sess]=t.split('|');return`<div class="card" style="padding:20px;text-align:center;">
         <i class="fas fa-file-pdf fa-2x" style="color:var(--br);margin-bottom:12px;display:block;"></i>
@@ -14105,9 +14121,11 @@ async function renderParentDocuments(){
 async function renderParentCBT(){
   setPage('Test History','CBT & Aptitude test results');
   const child=await getActiveChild();if(!child)return;
+  const siblings=await getSiblings();
+  const switcherHTML=childSwitcherBar(siblings,child.id,'renderParentCBT');
   const{data:subs}=await DB().from('cbt_submissions').select('*,cbt_exams(title,subject_name,exam_type)').eq('student_id',child.id).order('submitted_at',{ascending:false});
-  if(!subs?.length){setContent('<div class="card" style="padding:32px;text-align:center;"><p style="color:var(--brl);">No test submissions yet.</p></div>');return;}
-  setContent(`<div class="card" style="overflow:hidden;"><div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="tbl" style="min-width:max-content;">
+  if(!subs?.length){setContent(switcherHTML+'<div class="card" style="padding:32px;text-align:center;"><p style="color:var(--brl);">No test submissions yet.</p></div>');return;}
+  setContent(switcherHTML+`<div class="card" style="overflow:hidden;"><div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="tbl" style="min-width:max-content;">
     <thead><tr><th>Exam</th><th>Subject</th><th>Score</th><th>Total</th><th>%</th><th>Date</th></tr></thead>
     <tbody>${subs.map(s=>`<tr>
       <td style="font-weight:600;">${escapeHTML(s.cbt_exams?.title||'—')}</td>
@@ -14178,6 +14196,23 @@ async function getActiveChild(){
   const activeId=UP._activeChildId||ids[0];
   const{data}=await DB().from('students').select('*').eq('id',activeId).single();
   return data||null;
+}
+
+// ── Returns every child linked to this parent (for the multi-child switcher) ──
+async function getSiblings(){
+  const{data:links}=await DB().from('parent_child_links').select('student_id').eq('parent_id',UP.id);
+  const ids=(links||[]).map(l=>l.student_id);
+  if(!ids.length)return[];
+  const{data:students}=await DB().from('students').select('*').in('id',ids);
+  return students||[];
+}
+
+// ── Reusable switcher bar for any child-scoped parent page ──
+function childSwitcherBar(siblings,activeId,fnName){
+  if(!siblings||siblings.length<2)return'';
+  return`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
+    ${siblings.map(s=>`<button onclick="switchChild('${s.id}','${fnName}')" class="btn btn-sm ${s.id===activeId?'btn-primary':'btn-outline'}">${escapeHTML(s.full_name.split(' ')[0])}</button>`).join('')}
+  </div>`;
 }
 
 // ═══════════════════════════════════════════════════════
