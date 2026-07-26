@@ -13993,7 +13993,9 @@ async function parentDownloadResultPDF(studentId,term,session){
   try{
     const{data:student,error}=await DB().from('students').select('*').eq('id',studentId).single();
     if(!student||error){toast('Could not load student record for PDF.','error');return;}
+    window._unlockRole(); // ROLE is locked read-only after boot() — must unlock before reassigning
     ROLE='pin_viewer';
+    window._lockRole();
     UP={...student,_pin_term:term,_pin_sess:session};
     await renderMyResults(); // auto-loads via loadMyResults(), now using the CHILD's real admission_number
     await new Promise(r=>setTimeout(r,1200)); // let the async fetch + DOM paint settle before snapshotting
@@ -14003,7 +14005,10 @@ async function parentDownloadResultPDF(studentId,term,session){
   finally{
     // Always restore the real parent identity and the page they were on —
     // never leave them stranded on the "My Results" student screen.
-    ROLE=origRole; UP=origUP;
+    window._unlockRole();
+    ROLE=origRole;
+    window._lockRole();
+    UP=origUP;
     if(returnPage && typeof window[returnPage]==='function') window[returnPage]();
   }
 }
