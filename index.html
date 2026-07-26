@@ -3971,6 +3971,16 @@ async function linkParentToStudent(parentId){
 async function saveLinkParent(parentId){
   const ids=[...document.querySelectorAll('.link-stu-chk:checked')].map(c=>c.value);
   const names=[...document.querySelectorAll('.link-stu-chk:checked')].map(c=>c.closest('label').querySelector('span').textContent);
+  // ── Primary source of truth for the parent dashboard: parent_child_links ──
+  // (renderParentDash / getActiveChild / renderParentNotifications all read from here)
+  const{error:delErr}=await DB().from('parent_child_links').delete().eq('parent_id',parentId);
+  if(delErr){toast('Error: '+delErr.message,'error');return;}
+  if(ids.length){
+    const rows=ids.map(sid=>({parent_id:parentId,student_id:sid}));
+    const{error:insErr}=await DB().from('parent_child_links').insert(rows);
+    if(insErr){toast('Error: '+insErr.message,'error');return;}
+  }
+  // Keep legacy fields in sync for anywhere else in the app still reading them
   const{error}=await DB().from('parents').update({student_ids:ids,linked_students:names.join(', ')}).eq('id',parentId);
   if(error){toast('Error: '+error.message,'error');return;}
   // Also update student records with parent_id
@@ -11369,15 +11379,17 @@ async function renderAccountCreation(){
     return;
   }
   const canManageStaffAccounts=['super_admin','admin'].includes(ROLE);
-  setPage('Account Creation','Generate and manage login credentials for students and staff');
+  setPage('Account Creation','Generate and manage login credentials for students, staff and parents');
   setContent(`
     ${_renderSvcKeyBanner()}
     <div style="display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap;">
       <button onclick="renderACNew('student')" class="btn btn-primary"><i class="fas fa-user-plus"></i> New Student Accounts</button>
       ${canManageStaffAccounts?`<button onclick="renderACNew('staff')" class="btn btn-outline"><i class="fas fa-user-tie"></i> New Staff Accounts</button>`:''}
+      ${canManageStaffAccounts?`<button onclick="renderACNew('parent')" class="btn btn-outline"><i class="fas fa-user-friends"></i> New Parent Accounts</button>`:''}
       <button onclick="renderACExisting('student')" class="btn btn-outline"><i class="fas fa-users"></i> Existing Student Accounts</button>
       ${canManageStaffAccounts?`<button onclick="renderACExisting('staff')" class="btn btn-outline"><i class="fas fa-id-badge"></i> Existing Staff Accounts</button>`:''}
-      ${!canManageStaffAccounts?`<div style="padding:9px 14px;background:#FEF3C7;border-radius:10px;font-size:12.5px;color:#92400E;"><i class="fas fa-info-circle"></i> Only Super Admin and Admin can create or view staff accounts.</div>`:''}
+      ${canManageStaffAccounts?`<button onclick="renderACExisting('parent')" class="btn btn-outline"><i class="fas fa-address-card"></i> Existing Parent Accounts</button>`:''}
+      ${!canManageStaffAccounts?`<div style="padding:9px 14px;background:#FEF3C7;border-radius:10px;font-size:12.5px;color:#92400E;"><i class="fas fa-info-circle"></i> Only Super Admin and Admin can create or view staff and parent accounts.</div>`:''}
     </div>
     <div id="ac-main-area">
       <div class="card" style="padding:36px;text-align:center;max-width:620px;">
@@ -11392,6 +11404,7 @@ async function renderACNew(type){
   const area=document.getElementById('ac-main-area');
   if(!area) return;
   if(type==='staff'){await renderACNewStaff();return;}
+  if(type==='parent'){await renderACNewParent();return;}
   // Student new accounts
   let classes=[];
   if(ROLE==='head_teacher'){const{data}=await DB().from('classes').select('id,name,arm,level').in('level',['kindergarten','nursery','primary']).order('name');classes=data||[];}
@@ -11644,6 +11657,114 @@ async function saveStaffAccountCreds(){
   await renderACNewStaff();
 }
 
+// ─── New Accounts: Parent ─────────────────────────────────────────────
+async function renderACNewParent(){
+  const area=document.getElementById('ac-main-area');
+  if(!area) return;
+  if(!['super_admin','admin'].includes(ROLE)){
+    area.innerHTML=`<div class="card" style="padding:36px;text-align:center;color:#EF4444;"><i class="fas fa-lock fa-2x"></i><br><br>Only Super Admin and Admin can create parent accounts.</div>`;
+    return;
+  }
+  const{data:parents}=await DB().from('parents').select('id,full_name,email,phone,linked_students').eq('has_account',false).order('full_name');
+  if(!parents?.length){
+    area.innerHTML=`<div class="card" style="padding:32px;text-align:center;color:var(--brl);">All parents already have accounts.</div>`;
+    return;
+  }
+  area.innerHTML=`
+    <div class="card" style="padding:24px;">
+      <div style="font-weight:700;font-size:15px;color:var(--br);margin-bottom:18px;"><i class="fas fa-user-friends"></i> New Parent Accounts</div>
+      <div style="background:var(--cr);border-radius:10px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;color:var(--brl);">
+        <i class="fas fa-info-circle" style="color:var(--br);"></i> ${parents.length} parent(s) without accounts. Email is pre-filled where already on file — fill in the rest manually, or auto-generate a fallback login email + password for the selected rows.
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button onclick="selectAllACParents(true)" class="btn btn-sm btn-outline"><i class="fas fa-check-double"></i> Select All</button>
+        <button onclick="selectAllACParents(false)" class="btn btn-sm btn-outline"><i class="fas fa-times"></i> Deselect All</button>
+        <button onclick="bulkGenParentCreds()" class="btn btn-sm btn-primary"><i class="fas fa-magic"></i> Auto-Generate Selected</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="tbl">
+          <thead><tr><th><input type="checkbox" id="acpar-chk-all" onchange="selectAllACParents(this.checked)" style="accent-color:var(--br);"></th><th>Name</th><th>Linked Child(ren)</th><th>Email (auto/manual)</th><th>Password (auto/manual)</th></tr></thead>
+          <tbody>
+            ${parents.map(p=>`<tr data-ppid="${p.id}">
+              <td><input type="checkbox" class="acpar-chk" value="${p.id}" style="accent-color:var(--br);"></td>
+              <td style="font-weight:600;color:var(--br);">${escapeHTML(fmtStuName(p.full_name))}</td>
+              <td style="font-size:12px;color:var(--brl);">${escapeHTML(p.linked_students||'—')}</td>
+              <td><input type="email" class="acpar-email-inp input" data-ppid="${p.id}" placeholder="e.g. parent@email.com" value="${escapeHTML(p.email||'')}" style="padding:6px 10px;font-size:12.5px;min-width:180px;"></td>
+              <td><input type="text" class="acpar-pass-inp input" data-ppid="${p.id}" placeholder="Auto-generate or type" style="padding:6px 10px;font-size:12.5px;min-width:140px;"></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:9px;margin-top:16px;">
+        <button onclick="saveParentAccountCreds()" class="btn btn-primary" style="padding:12px 22px;"><i class="fas fa-save"></i> Save & Activate Accounts</button>
+      </div>
+    </div>`;
+}
+function selectAllACParents(checked){
+  document.querySelectorAll('.acpar-chk').forEach(c=>c.checked=checked);
+  const allChk=document.getElementById('acpar-chk-all');
+  if(allChk) allChk.checked=checked;
+}
+function bulkGenParentCreds(){
+  document.querySelectorAll('.acpar-chk:checked').forEach(chk=>{
+    const ppid=chk.value;
+    const row=document.querySelector(`tr[data-ppid="${ppid}"]`);
+    if(!row) return;
+    const emailInp=row.querySelector('.acpar-email-inp');
+    const passInp=row.querySelector('.acpar-pass-inp');
+    const nameCell=row.cells[1]?.textContent||'parent';
+    if(emailInp&&!emailInp.value.trim()){
+      // Fallback synthetic login email when no real email is on file — matches the
+      // pattern used by the Parent Auth Migration tool (par-<id>@parent.vis.school)
+      emailInp.value=('par-'+String(ppid).replace(/[^a-zA-Z0-9]/g,'')+'@parent.vis.school');
+    }
+    if(passInp&&!passInp.value) passInp.value=genPass();
+  });
+  toast('✅ Credentials generated for selected parents!');
+}
+async function saveParentAccountCreds(){
+  const rows=document.querySelectorAll('#ac-main-area tbody tr[data-ppid]');
+  const toSave=[];
+  rows.forEach(row=>{
+    const ppid=row.dataset.ppid;
+    const email=row.querySelector('.acpar-email-inp')?.value.trim().toLowerCase();
+    const pass=row.querySelector('.acpar-pass-inp')?.value.trim();
+    if(email&&pass) toSave.push({id:ppid,email,pass});
+  });
+  if(!toSave.length){toast('No credentials to save. Fill in at least one row.','error');return;}
+  let saved=0,errors=0;
+  for(const r of toSave){
+    try{
+      // 1. Update parents table — email + has_account
+      const{data:pr,error:dbErr}=await DB().from('parents')
+        .update({email:r.email,has_account:true})
+        .eq('id',r.id).select('full_name,email').single();
+      if(dbErr){errors++;continue;}
+      // 2. Create Supabase Auth account via Edge Function
+      let authId=null;
+      const{data:au,error:authErr}=await _callAuthAdmin('create',{email:r.email,password:r.pass});
+      if(authErr){
+        if(authErr.message?.toLowerCase().includes('already')){
+          const{data:upd}=await _callAuthAdmin('updateByEmail',{email:r.email,updates:{password:r.pass}});
+          if(upd?.user) authId=upd.user.id;
+        }
+      } else {
+        authId=au?.user?.id||null;
+      }
+      // 3. Save auth_id back to parents row
+      if(authId) await DB().from('parents').update({auth_id:authId}).eq('id',r.id);
+      saved++;
+      // 4. Email login details
+      if(pr?.email){
+        try{await sendLoginDetailsEmail({toEmail:pr.email,toName:pr.full_name||'Parent',email:r.email,password:r.pass,role:'parent'});}catch(e){}
+      }
+    }catch(e){errors++;}
+  }
+  if(errors) toast(`⚠️ ${saved} saved, ${errors} failed.`,'error');
+  else toast(`✅ ${saved} parent account(s) activated and Auth created! Login details emailed where email exists.`);
+  await renderACNewParent();
+}
+
 // ─── Existing Accounts ────────────────────────────────────────────────
 async function renderACExisting(type){
   const area=document.getElementById('ac-main-area');
@@ -11667,6 +11788,25 @@ async function renderACExisting(type){
               <button onclick="regenSingleCred('staff','${s.id}')" class="btn btn-sm btn-ghost"><i class="fas fa-sync"></i></button></td>
         </tr>`).join('')||'<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--brl);">No staff with accounts found.</td></tr>'}
         </tbody></table></div></div>`;
+  } else if(type==='parent'){
+    if(!['super_admin','admin'].includes(ROLE)){
+      area.innerHTML=`<div class="card" style="padding:36px;text-align:center;color:#EF4444;"><i class="fas fa-lock fa-2x"></i><br><br>Only Super Admin and Admin can view existing parent accounts.</div>`;
+      return;
+    }
+    const{data:parents}=await DB().from('parents').select('*').eq('has_account',true).order('full_name');
+    area.innerHTML=`<div class="card" style="overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--crd);font-weight:700;font-size:14px;color:var(--br);"><i class="fas fa-address-card"></i> Existing Parent Accounts</div>
+      <div style="padding:10px 18px;"><input class="input" placeholder="🔍 Search parents…" style="max-width:240px;padding:8px 12px;" oninput="filterTbl(this,'ac-par-ex-tb')"></div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="tbl" style="min-width:max-content;">
+        <thead><tr><th>Name</th><th>Email</th><th>Linked Child(ren)</th><th>Actions</th></tr></thead>
+        <tbody id="ac-par-ex-tb">${(parents||[]).map(p=>`<tr>
+          <td style="font-weight:600;color:var(--br);">${escapeHTML(fmtStuName(p.full_name))}</td>
+          <td style="color:var(--brl);">${escapeHTML(p.email||'—')}</td>
+          <td style="font-size:12px;color:var(--brl);">${escapeHTML(p.linked_students||'—')}</td>
+          <td style="display:flex;gap:5px;"><button onclick="editExistingCred('parent','${p.id}')" class="btn btn-sm btn-outline"><i class="fas fa-edit"></i></button>
+              <button onclick="regenSingleCred('parent','${p.id}')" class="btn btn-sm btn-ghost"><i class="fas fa-sync"></i></button></td>
+        </tr>`).join('')||'<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--brl);">No parents with accounts found.</td></tr>'}
+        </tbody></table></div></div>`;
   } else {
     const{data:students}=await DB().from('students').select('*').eq('has_account',true).order('full_name');
     area.innerHTML=`<div class="card" style="overflow:hidden;">
@@ -11688,14 +11828,15 @@ async function renderACExisting(type){
 }
 
 function editExistingCred(type,id){
-  const isStaff=type==='staff';
+  const isEmailBased=type==='staff'||type==='parent';
+  const typeLabel=type==='staff'?'Staff':type==='parent'?'Parent':'Student';
   modal(`<div style="padding:26px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <h3 class="hf" style="font-size:20px;color:var(--br);">Edit ${isStaff?'Staff':'Student'} Credentials</h3>
+      <h3 class="hf" style="font-size:20px;color:var(--br);">Edit ${typeLabel} Credentials</h3>
       <button onclick="closeModal()" style="border:none;background:none;font-size:21px;cursor:pointer;color:var(--brl);">&times;</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:13px;">
-      ${isStaff
+      ${isEmailBased
         ?`<div><label class="lbl">Email Address</label><input id="ec-cred1" class="input" placeholder="email@vis.edu"></div>`
         :`<div><label class="lbl">Admission Number</label><input id="ec-cred1" class="input" placeholder="APEX/2024/00001"></div>`}
       <div><label class="lbl">New Password / Code</label><input id="ec-cred2" class="input" placeholder="Leave blank to keep current"></div>
@@ -11712,9 +11853,9 @@ async function applyExistingCred(type,id){
   if(!cred1){toast('First field is required.','error');return;}
   const upd={};
   // Only update identifiers in DB — passwords go to Auth only, never to DB columns
-  if(type==='staff'){upd.email=cred1.toLowerCase();}
+  if(type==='staff'||type==='parent'){upd.email=cred1.toLowerCase();}
   else{upd.admission_number=cred1.toUpperCase();}
-  const tbl=type==='staff'?'profiles':'students';
+  const tbl=type==='staff'?'profiles':type==='parent'?'parents':'students';
   // 1. Update identifier in the table
   const{data:rec,error}=await DB().from(tbl).update(upd).eq('id',id).select('auth_id').single();
   if(error){toast('Error: '+error.message,'error');return;}
@@ -11722,7 +11863,7 @@ async function applyExistingCred(type,id){
   if(rec?.auth_id){
     try{
       const authUpd={};
-      if(type==='staff') authUpd.email=cred1.toLowerCase();
+      if(type==='staff'||type==='parent') authUpd.email=cred1.toLowerCase();
       if(type==='student') authUpd.email=cred1.toUpperCase().replace(/[^A-Z0-9]/g,'').toLowerCase()+'@student.apex.school';
       if(cred2) authUpd.password=cred2;
       if(Object.keys(authUpd).length){
@@ -11745,7 +11886,7 @@ async function regenSingleCred(type,id){
   const newPass=genPass();
   const upd={};
   if(type==='student'){upd.admission_number=genAdmNum();}
-  const tbl=type==='staff'?'profiles':'students';
+  const tbl=type==='staff'?'profiles':type==='parent'?'parents':'students';
   let rec=null;
   if(Object.keys(upd).length){
     const{data:r,error}=await DB().from(tbl).update(upd).eq('id',id).select('auth_id').single();
@@ -11768,6 +11909,7 @@ async function regenSingleCred(type,id){
     try{
       let authEmail='';
       if(type==='staff'){const{data:p}=await DB().from('profiles').select('email').eq('id',id).single();authEmail=p?.email||'';}
+      else if(type==='parent'){const{data:p}=await DB().from('parents').select('email').eq('id',id).single();authEmail=p?.email||'';}
       else if(upd.admission_number){authEmail=upd.admission_number.replace(/[^A-Z0-9]/gi,'').toLowerCase()+'@student.apex.school';}
       if(!authEmail){toast('No email for Auth account creation.','error');return;}
       const{data:nu}=await _callAuthAdmin('create',{email:authEmail,password:newPass});
@@ -15027,7 +15169,7 @@ function buildAdmFormHTML(classes,ss,isPublic){
         <!-- Payment detail panels -->
         <div id="pub-pay-panel-paystack" style="display:none;margin-top:14px;background:#EFF8FF;border-radius:12px;padding:14px 16px;">
           <div style="font-weight:700;font-size:13px;color:#2563EB;margin-bottom:10px;"><i class="fas fa-credit-card"></i> Pay via Paystack</div>
-          <button onclick="initiatePaystack()" class="btn" style="background:#00C3F7;color:#fff;width:100%;justify-content:center;padding:13px;font-size:14px;font-weight:700;border-radius:12px;"><i class="fas fa-lock"></i> Pay Securely with Paystack</button>
+          <button onclick="initiateAdmissionPaystack()" class="btn" style="background:#00C3F7;color:#fff;width:100%;justify-content:center;padding:13px;font-size:14px;font-weight:700;border-radius:12px;"><i class="fas fa-lock"></i> Pay Securely with Paystack</button>
           <div style="font-size:11px;color:var(--brl);text-align:center;margin-top:8px;"><i class="fas fa-shield-alt"></i> Secured by Paystack. All cards accepted.</div>
           <div id="paystack-paid-confirm" style="display:none;background:#DCFCE7;border-radius:10px;padding:10px 14px;margin-top:10px;font-size:13px;font-weight:700;color:#16A34A;"><i class="fas fa-check-circle"></i> Payment confirmed! You can now submit.</div>
         </div>
@@ -15175,7 +15317,7 @@ function showPubPayMethod(method){
   if(confirmFlag) confirmFlag.style.display='block';
 }
 
-function initiatePaystack(){
+function initiateAdmissionPaystack(){
   const fee=window._currentAdmFee||0;
   const email=document.getElementById('adm-eml')?.value.trim()||'admission@vis.edu';
   const name=document.getElementById('adm-name')?.value.trim()||'Applicant';
@@ -16541,13 +16683,12 @@ async function loadFeeReceipts(){
   if(clsId) q=q.eq('class_id',clsId);
   const{data:students}=await q.order('full_name');
 
-  // Load fee assignments (invoices) and payments
-  let faq=DB().from('fee_assignments').select('*');
-  if(clsId) faq=faq.eq('class_id',clsId);
-  if(session) faq=faq.eq('session',session);
-  if(term) faq=faq.eq('term',term);
-  const{data:assignments}=await faq;
-
+  // Load fee_payments — single source of truth for both invoice amounts and
+  // amounts paid (matches Finance & Fees / loadFinanceTable). fee_assignments
+  // is not populated when invoices are created, so it can't be used here.
+  // Note: fee_payments has no class_id column, only class_name, so we don't
+  // filter by class here — the per-student mapping below (via students,
+  // already filtered by class_id) achieves the same result safely.
   let fpq=DB().from('fee_payments').select('*');
   if(session) fpq=fpq.eq('session',session);
   if(term) fpq=fpq.eq('term',term);
@@ -16557,9 +16698,9 @@ async function loadFeeReceipts(){
 
   // Build per-student summary
   const rows=(students||[]).map(s=>{
-    const stuAssign=(assignments||[]).filter(a=>a.student_id===s.id);
-    const stuPaid=(payments||[]).filter(p=>p.student_id===s.id);
-    const totalInvoice=stuAssign.reduce((sum,a)=>sum+(parseFloat(a.amount)||0),0);
+    const stuAssign=(payments||[]).filter(p=>p.student_id===s.id); // invoice line items (fee_payments rows double as invoices)
+    const stuPaid=stuAssign; // same records carry amount_paid, reused for receipts
+    const totalInvoice=stuAssign.reduce((sum,p)=>sum+(parseFloat(p.amount)||0),0);
     const totalPaid=stuPaid.reduce((sum,p)=>sum+(parseFloat(p.amount_paid)||0),0);
     return{s,totalInvoice,totalPaid,stuAssign,stuPaid};
   });
@@ -16617,7 +16758,7 @@ async function loadFeeReceipts(){
 async function generateStudentInvoicePDF(studentId,studentName,session,term){
   await window._ensureJsPDF();
   const SS=SCHOOL_SETTINGS;
-  const{data:assignments}=await DB().from('fee_assignments').select('*').eq('student_id',studentId);
+  const{data:assignments}=await DB().from('fee_payments').select('*').eq('student_id',studentId);
   const{data:stu}=await DB().from('students').select('*').eq('id',studentId).single();
   const filtered=(assignments||[]).filter(a=>(!session||a.session===session)&&(!term||a.term===term));
   let logoImg=null;
@@ -16677,7 +16818,7 @@ function _buildInvoicePDF(stu,filtered,session,term,SS,logoImg){
     pdf.setFillColor(i%2===0?255:248,i%2===0?255:248,i%2===0?255:248);
     pdf.rect(ML,y,W-ML*2,9,'F');
     pdf.setTextColor(0,0,0);pdf.setFont('helvetica','normal');pdf.setFontSize(9);
-    pdf.text((fa.fee_name||fa.description||'Fee').substring(0,40),ML+5,y+6);
+    pdf.text((fa.fee_name||fa.fee_type||fa.description||'Fee').substring(0,40),ML+5,y+6);
     pdf.text((parseFloat(fa.amount)||0).toLocaleString(),W-ML,y+6,{align:'right'});
     total+=parseFloat(fa.amount)||0;y+=9;
   });
