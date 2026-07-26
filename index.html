@@ -1508,6 +1508,7 @@ async function parentLogin(){
     }
     if(!par){await DB().auth.signOut();authMsg('❌ Parent record not found. Contact admin.');_resetBtn();return;}
     _rlSuccess('parent');
+    _purgeStalePageCache();
     CU={id:authData.user.id,email:authData.user.email};
     UP=par;ROLE='parent';_resetBtn();boot();
   }catch(e){console.error('[parentLogin]',e);authMsg('❌ Sign-in failed. Please check your credentials and try again.');_resetBtn();}
@@ -1641,6 +1642,7 @@ async function boot(){
 function logout(){
   window._unlockRole(); // 🔓 Allow ROLE=null below — must come before the reset
   sessionStorage.removeItem('vis_session');
+  _purgeStalePageCache(); // ── wipe per-page HTML cache so the next login never sees a previous user's rendered page
   _clearInactivity();
   if(_ppChannel){try{DB().removeChannel(_ppChannel);}catch(e){} _ppChannel=null;}
   if(_annChannel){try{DB().removeChannel(_annChannel);}catch(e){} _annChannel=null;}
@@ -1964,10 +1966,27 @@ function _readPageCache(page){
   // Returns synchronously from sessionStorage quick-cache (populated on last write)
   return sessionStorage.getItem('vis_phtml_'+page)||null;
 }
+// ── Wipes every cached rendered page. Must run on logout (and before a new
+// login's boot()) so a different account never inherits stale HTML/route
+// state from whoever used this browser/device last. ──────────────────────
+function _purgeStalePageCache(){
+  try{
+    Object.keys(sessionStorage).filter(k=>k.startsWith('vis_phtml_')).forEach(k=>sessionStorage.removeItem(k));
+  }catch(e){}
+  try{ localStorage.removeItem('vis_current_page'); }catch(e){}
+  try{
+    if('caches' in self) caches.delete(_PAGE_CACHE_NAME);
+  }catch(e){}
+}
 window.addEventListener('popstate', function(e){
   if(!CU) return; // not logged in, let default back work
   const page = e.state?.page || localStorage.getItem('vis_current_page') || 'renderDashboard';
-  if(typeof window[page]==='function') callFn(page, false);
+  // Guard: only ever invoke a page that belongs to the CURRENT role's menu.
+  // Without this check, a stale history entry or localStorage pointer left
+  // behind by a different account on this device/browser (e.g. a student
+  // account tested earlier) could get replayed for whoever is logged in now.
+  const allowed = page==='renderDashboard' || MENUS[ROLE]?.some(m=>m.f===page);
+  if(allowed && typeof window[page]==='function') callFn(page, false);
   else callFn('renderDashboard', false);
 });
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('visible');}
@@ -13862,9 +13881,8 @@ async function downloadGatePass(id){
 async function renderParentDash(){
   setPage('Parent Dashboard','Welcome, '+( UP?.full_name?.split(' ')[0]||'Parent'));
   // Load linked children
-  const{data:links}=await DB().from('parent_child_links').select('student_id,relationship').eq('parent_id',UP.id);
-  const ids=(links||[]).map(l=>l.student_id);
-  if(!ids.length){
+  const students=await getSiblings();
+  if(!students.length){
     setContent(`<div class="card" style="padding:40px;text-align:center;max-width:480px;margin:0 auto;">
       <i class="fas fa-user-friends fa-3x" style="color:var(--brl);margin-bottom:18px;display:block;"></i>
       <div style="font-size:17px;font-weight:700;color:var(--br);margin-bottom:8px;">No children linked</div>
@@ -13872,8 +13890,6 @@ async function renderParentDash(){
     </div>`);
     return;
   }
-  const{data:students}=await DB().from('students').select('*').in('id',ids);
-  if(!students?.length){setContent('<div class="card" style="padding:32px;text-align:center;"><p style="color:var(--brl);">Could not load children data.</p></div>');return;}
   // Multi-child switcher
   let activeChildId=UP._activeChildId||students[0].id;
   const child=students.find(s=>s.id===activeChildId)||students[0];
