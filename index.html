@@ -77,6 +77,36 @@
      Wraps fetch with a 60s timeout so slow 4G never hangs indefinitely.
      Guard: only installs if window.fetch exists (safe on all browsers). -->
 <script>
+/* ── CRASH SAFETY NET — must be the very first script in <head> ──────────
+   On old/low-end phones a single unsupported feature or a slow/failed
+   resource anywhere below can otherwise leave the user staring at a
+   blank white screen forever with no clue why. This catches that class
+   of failure (parse errors in later <script> blocks fire as window
+   'error' events too) and shows a plain, low-memory fallback message
+   instead of a silent freeze. It also gives a watchdog: if the app
+   hasn't finished booting after 12s, it shows the same fallback rather
+   than leaving a blank screen. Both remove themselves once the app
+   signals it booted (window._appBooted = true), so they never appear
+   for phones that load fine.                                          ── */
+(function(){
+  var shown=false;
+  function fallback(msg){
+    if(shown||window._appBooted) return; shown=true;
+    var d=document.createElement('div');
+    d.setAttribute('style','position:fixed;inset:0;z-index:999999;background:#fff;color:#1A2E1A;font:15px/1.5 -apple-system,Roboto,Arial,sans-serif;padding:28px 20px;overflow:auto;');
+    d.innerHTML='<div style="max-width:420px;margin:40px auto;text-align:center;">'
+      +'<div style="font-size:38px;margin-bottom:10px;">⚠️</div>'
+      +'<h2 style="margin:0 0 10px;font-size:19px;">This page couldn\'t load properly</h2>'
+      +'<p style="margin:0 0 16px;color:#555;">Your browser or connection may be too old/slow for this page. Try updating your browser, or reload on Wi-Fi.</p>'
+      +'<button onclick="location.reload()" style="background:#1A6B2A;color:#fff;border:none;border-radius:8px;padding:12px 22px;font-size:15px;">Reload</button>'
+      +'<p style="margin-top:18px;font-size:11px;color:#999;word-break:break-all;">'+(msg||'')+'</p>'
+      +'</div>';
+    document.body?document.body.appendChild(d):document.addEventListener('DOMContentLoaded',function(){document.body.appendChild(d);});
+  }
+  window.addEventListener('error',function(e){fallback((e&&(e.message||(e.error&&e.error.message)))||'Script error');},true);
+  window.addEventListener('unhandledrejection',function(e){fallback((e&&e.reason&&e.reason.message)||'Load error');});
+  setTimeout(function(){fallback('Taking too long to load');},12000);
+})();
 window._FACE_API_URL='https://cdn.jsdelivr.net/npm/face-api.js@0.22.2';
 if(typeof window.fetch==='function'){
   (function(){
@@ -20459,6 +20489,7 @@ function filterExpTable(q){
 }
 
 window.addEventListener('DOMContentLoaded',async()=>{
+  window._appBooted=true;
   applyTranslations();
   // ── PWA: register service worker ─────────────────────────────────────────
   if ('serviceWorker' in navigator) {
@@ -22480,7 +22511,7 @@ async function _idcGenerateBulkPDF(people, type) {
     const MX = (PAGE_W - gridW) / 2;  // horizontal margin
     const MY = (PAGE_H - gridH) / 2;  // vertical margin
     const PER_PAGE = COLS * ROWS;      // 8
-    const SCALE = 6;                   // render quality — high-resolution output
+    const SCALE = 2.5;                 // render quality — lowered from 6 so bulk PDF generation doesn't exhaust memory on low-end phones
 
     const pdf = new jspdf({ orientation:'portrait', unit:'mm', format:'a4' });
     let firstPage = true;
