@@ -103,9 +103,19 @@
       +'</div>';
     document.body?document.body.appendChild(d):document.addEventListener('DOMContentLoaded',function(){document.body.appendChild(d);});
   }
-  window.addEventListener('error',function(e){fallback((e&&(e.message||(e.error&&e.error.message)))||'Script error');},true);
-  window.addEventListener('unhandledrejection',function(e){fallback((e&&e.reason&&e.reason.message)||'Load error');});
-  setTimeout(function(){fallback('Taking too long to load');},12000);
+  window.addEventListener('error',function(e){
+    // Resource load failures (img/link/script failing to fetch) don't carry
+    // a message and are usually non-fatal — ignore those. Only real thrown
+    // JS errors (which always have a message) count as fatal.
+    if(!e || !e.message) return;
+    fallback(e.message+(e.filename?(' ('+e.filename.split('/').pop()+':'+e.lineno+')'):''));
+  },true);
+  window.addEventListener('unhandledrejection',function(e){fallback((e&&e.reason&&(e.reason.message||String(e.reason)))||'Load error');});
+  // No watchdog timeout here on purpose: on slow/weak connections (common on
+  // low-end phones) the page can legitimately take well over a minute to
+  // finish downloading everything (this file + Supabase + fonts + icons).
+  // A timer that "gives up" and shows an error is worse than just letting
+  // it keep loading. Real errors are still caught above.
 })();
 window._FACE_API_URL='https://cdn.jsdelivr.net/npm/face-api.js@0.22.2';
 if(typeof window.fetch==='function'){
@@ -396,7 +406,15 @@ body.exam-active .exam-opt,body.exam-active button,body.exam-active input,body.e
 </head>
 <body>
 
+<div id="_bootLoading" style="position:fixed;inset:0;z-index:999998;background:#F0F7F0;display:flex;align-items:center;justify-content:center;flex-direction:column;font:15px/1.5 -apple-system,Roboto,Arial,sans-serif;color:#1A6B2A;">
+  <div style="width:34px;height:34px;border:3px solid #cfe6cf;border-top-color:#1A6B2A;border-radius:50%;animation:_spin 0.8s linear infinite;margin-bottom:14px;"></div>
+  <div>Loading… this can take a while on a slow connection</div>
+</div>
+<style>@keyframes _spin{to{transform:rotate(360deg);}}</style>
+<script>window.addEventListener('DOMContentLoaded',function(){var t=setInterval(function(){if(window._appBooted){var el=document.getElementById('_bootLoading');if(el)el.remove();clearInterval(t);}},300);});</script>
+
 <!-- TOP NAV -->
+
 <nav id="topnav">
   <div style="max-width:1400px;margin:0 auto;padding:0 18px;height:62px;display:flex;align-items:center;justify-content:space-between;">
     <div style="display:flex;align-items:center;gap:12px;">
