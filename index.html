@@ -423,7 +423,7 @@ body.exam-active .exam-opt,body.exam-active button,body.exam-active input,body.e
         <div id="tn-logo" style="width:36px;height:36px;background:var(--br);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;overflow:hidden;flex-shrink:0;">🏫</div>
         <div>
           <div class="hf" style="font-size:16px;color:var(--br);line-height:1.1;">APEX ACADEMY GLOBAL SCHOOLS</div>
-          <div id="nav-motto" style="font-size:9px;color:var(--brl);font-style:italic;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Wisdom, Knowledge and Success</div>
+          <div id="nav-motto" style="font-size:9px;color:var(--brl);font-style:italic;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">The Seat of Excellence</div>
         </div>
       </div>
     </div>
@@ -455,7 +455,7 @@ body.exam-active .exam-opt,body.exam-active button,body.exam-active input,body.e
   <div id="pp-hero">
     <div id="pp-logo" style="width:76px;height:76px;background:rgba(255,255,255,.18);border-radius:20px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;font-size:34px;overflow:hidden;flex-shrink:0;"></div>
     <h1 id="pp-school-name">APEX ACADEMY GLOBAL SCHOOLS</h1>
-    <p id="pp-motto">Wisdom, Knowledge and Success</p>
+    <p id="pp-motto">The Seat of Excellence</p>
     <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
       <button class="pp-btn-portal" onclick="showPortalLogin()"><i class="fas fa-lock"></i> School Portal</button>
     </div>
@@ -487,7 +487,7 @@ body.exam-active .exam-opt,body.exam-active button,body.exam-active input,body.e
       <div id="login-logo" style="width:56px;height:56px;background:var(--br);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 14px;overflow:hidden;">🏫</div>
       <h2 class="hf" data-i18n="welcome_back" style="font-size:28px;color:var(--br);">Welcome Back</h2>
       <p data-i18n="sign_in_sub" style="font-size:13px;color:var(--brl);margin-top:3px;">Sign in to your school portal</p>
-      <p id="login-motto" style="font-size:11px;color:var(--brl);margin-top:4px;font-style:italic;">"Wisdom, Knowledge and Success"</p>
+      <p id="login-motto" style="font-size:11px;color:var(--brl);margin-top:4px;font-style:italic;">"The Seat of Excellence"</p>
       <select id="lang-switcher" class="input" style="margin-top:12px;max-width:170px;font-size:12px;padding:7px 10px;" onchange="setLanguage(this.value)">
         <option value="en">🌐 English</option>
         <option value="fr">🌐 Français</option>
@@ -767,7 +767,7 @@ let _sb=null, CU=null, UP=null, darkMode=false, examTimer=null, _inactivityTimer
 })();
 let SCHOOL_SETTINGS={
   school_name:'APEX ACADEMY GLOBAL SCHOOLS',
-  motto:'Wisdom, Knowledge and Success',
+  motto:'The Seat of Excellence',
   address:'Odukpani LGA, Cross River State, Nigeria',
   phone1:'', phone2:'', email:'', logo_url:'',
   current_session:'2024/2025', current_term:'1st Term',
@@ -4721,7 +4721,7 @@ function buildResultSheet({
           <div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(150,108,8,.6),transparent);"></div>
         </div>
         <div style="font-size:9.5px;font-style:italic;color:rgba(255,255,255,0.82);letter-spacing:.08em;text-transform:uppercase;">
-          ${escapeHTML(SS.motto||'Wisdom, Knowledge and Success')}
+          ${escapeHTML(SS.motto||'The Seat of Excellence')}
         </div>
         <div style="font-size:8.5px;color:rgba(255,255,255,0.75);margin-top:2px;line-height:1.4;">
           ${escapeHTML(SS.address||'')}
@@ -4906,7 +4906,7 @@ function buildResultSheet({
   <div style="padding:4px 12px;background:linear-gradient(135deg,#2C1A16 0%,#4A2E24 100%);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:3px;">
     <div style="font-size:8.5px;color:#C8A870;">Generated: ${genDate}</div>
     <div style="font-size:8.5px;color:#9A7A5A;">Scan QR &bull; PIN: <strong style="color:#C8A870;letter-spacing:.06em;">${qrPin||'—'}</strong></div>
-    <div style="font-size:8.5px;font-style:italic;color:#C8A870;">"${escapeHTML(SS.motto||'Wisdom, Knowledge and Success')}"</div>
+    <div style="font-size:8.5px;font-style:italic;color:#C8A870;">"${escapeHTML(SS.motto||'The Seat of Excellence')}"</div>
   </div>
 
   <!-- Gold bottom accent -->
@@ -9812,7 +9812,7 @@ async function downloadSubjRegPDF(){
   pdf.setFontSize(14);pdf.setFont('helvetica','bold');
   pdf.text(SS.school_name||'APEX ACADEMY GLOBAL SCHOOLS',105,12,{align:'center'});
   pdf.setFontSize(9);pdf.setFont('helvetica','italic');
-  pdf.text(SS.motto||'Wisdom, Knowledge and Success',105,19,{align:'center'});
+  pdf.text(SS.motto||'The Seat of Excellence',105,19,{align:'center'});
   pdf.setFontSize(8);pdf.setFont('helvetica','normal');
   pdf.text(SS.address||'',105,25,{align:'center'});
   pdf.setTextColor(0,0,0);
@@ -10483,7 +10483,7 @@ function applyLogoEverywhere(){
   if(pl) pl.innerHTML=`<img src="${url}" style="width:70px;height:70px;object-fit:contain;border-radius:18px;">`;
 }
 function applyMottoEverywhere(){
-  const m=SCHOOL_SETTINGS.motto||'Wisdom, Knowledge and Success';
+  const m=SCHOOL_SETTINGS.motto||'The Seat of Excellence';
   const nm=$('nav-motto'); if(nm) nm.textContent=m;
   const lm=$('login-motto'); if(lm) lm.textContent='"'+m+'"';
 }
@@ -13250,7 +13250,7 @@ async function syncAllDrafts(){
 function buildBrandedEmailHtml({toName='Recipient', subject='', bodyText='', bodyHtmlContent=''}){
   const SS = SCHOOL_SETTINGS || {};
   const schoolName = SS.school_name  || 'APEX ACADEMY GLOBAL SCHOOLS';
-  const motto      = SS.motto        || 'Wisdom, Knowledge and Success';
+  const motto      = SS.motto        || 'The Seat of Excellence';
   const address    = SS.address      || '';
   const phone      = SS.phone1 || SS.phone2 || '';
   const logoUrl    = SS.logo_url     || '';
@@ -15000,7 +15000,7 @@ function buildAdmFormHTML(classes,ss,isPublic){
     <div style="text-align:center;margin-bottom:22px;border-bottom:2px solid var(--crd);padding-bottom:16px;">
       <div style="width:54px;height:54px;background:var(--br);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 10px;overflow:hidden;">${ss.logo_url?`<img src="${ss.logo_url}" style="width:100%;height:100%;object-fit:contain;">`:'🏫'}</div>
       <h3 class="hf" style="font-size:21px;color:var(--br);">${schoolName}</h3>
-      <p style="font-size:12px;color:var(--brl);">${escapeHTML(ss.motto||'Wisdom, Knowledge and Success')}</p>
+      <p style="font-size:12px;color:var(--brl);">${escapeHTML(ss.motto||'The Seat of Excellence')}</p>
       <div style="font-size:14px;font-weight:700;color:var(--br);margin-top:8px;">${isPublic?'PUBLIC':'INTERNAL'} ADMISSION FORM</div>
     </div>
     <div id="adm-steps" style="display:flex;gap:4px;margin-bottom:20px;justify-content:center;">
@@ -16424,7 +16424,7 @@ async function generateAdmissionPDF(adm, isOnline=false, showReceipt=false){
   const admNum=adm.admission_number||('APEX/ADM/'+new Date().getFullYear()+'/'+Date.now().toString().slice(-4));
   const today=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
   const schoolName=SS.school_name||'APEX ACADEMY GLOBAL SCHOOLS';
-  const motto=SS.motto||'Wisdom, Knowledge and Success';
+  const motto=SS.motto||'The Seat of Excellence';
   const address=SS.address||'Okpok-Ikpa Okoyong, Odukpani LGA, Cross River State, Nigeria';
 
   // ── SHARED LETTERHEAD HELPER ──────────────────────────────────────────────
@@ -19827,7 +19827,7 @@ function showPortalLogin(){
 function applyPublicBranding(){
   const ss=SCHOOL_SETTINGS;
   const nm=ss.school_name||'APEX ACADEMY GLOBAL SCHOOLS';
-  const motto=ss.motto||'Wisdom, Knowledge and Success';
+  const motto=ss.motto||'The Seat of Excellence';
   const addr=ss.address||'';
   const el=id=>document.getElementById(id);
   if(el('pp-school-name')) el('pp-school-name').textContent=nm;
