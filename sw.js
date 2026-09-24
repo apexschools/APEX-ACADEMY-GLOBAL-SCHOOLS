@@ -27,7 +27,10 @@ const SHELL_ASSETS = [
 // activation so users explicitly choose when to reload.
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL_ASSETS))
+    caches.open(CACHE_NAME).then(cache =>
+      // One missing icon must not abort the whole install (addAll is all-or-nothing)
+      Promise.all(SHELL_ASSETS.map(a => cache.add(a).catch(() => {})))
+    )
   );
 });
 
@@ -56,10 +59,21 @@ self.addEventListener('message', event => {
   // The page's own 2.2s refresh already reloads live data, so we stay
   // silent here. When a real mutation queue is added later, flush it
   // here and reply: event.source.postMessage({type:'SYNC_COMPLETE', flushed: N})
-  if (event.data?.type === 'SYNC_NOW') {
+  if (event.data && event.data.type === 'SYNC_NOW') {
     return;
   }
 });
+
+// Only cache complete, same-origin 200 responses. Caching partial (206) or
+// error responses throws inside the worker and can wedge the app on weak phones.
+function safePut(request, response) {
+  try {
+    if (response && response.status === 200 && response.type === 'basic') {
+      const clone = response.clone();
+      caches.open(CACHE_NAME).then(c => c.put(request, clone)).catch(() => {});
+    }
+  } catch (e) {}
+}
 
 // ── Fetch ─────────────────────────────────────────────────────────────
 self.addEventListener('fetch', event => {
@@ -76,12 +90,13 @@ self.addEventListener('fetch', event => {
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
-        .then(response => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(c => c.put(request, clone));
-          return response;
-        })
-        .catch(() => caches.match('/index.html'))
+        .then(response => { safePut(request, response); return response; })
+        .catch(() =>
+          caches.match(request)
+            .then(r => r || caches.match('/index.html'))
+            .then(r => r || new Response('Offline — please reconnect and reload.',
+              { status: 503, headers: { 'Content-Type': 'text/plain' } }))
+        )
     );
     return;
   }
@@ -89,7 +104,7 @@ self.addEventListener('fetch', event => {
   // 2. Shell assets (icons, manifest) → Cache First for instant loads
   if (SHELL_ASSETS.some(a => url.pathname === a)) {
     event.respondWith(
-      caches.match(request).then(cached => cached || fetch(request))
+      caches.match(request).then(cached => cached || fetch(request)).catch(() => fetch(request))
     );
     return;
   }
@@ -97,11 +112,9 @@ self.addEventListener('fetch', event => {
   // 3. Everything else on same origin → Network First, cache fallback
   event.respondWith(
     fetch(request)
-      .then(response => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then(c => c.put(request, clone));
-        return response;
-      })
-      .catch(() => caches.match(request))
+      .then(response => { safePut(request, response); return response; })
+      .catch(() =>
+        caches.match(request).then(r => r || new Response('', { status: 504 }))
+      )
   );
 });
